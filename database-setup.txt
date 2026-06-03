@@ -1,0 +1,320 @@
+================================================================
+  BeyMarket – Guida al collegamento con un database esterno
+================================================================
+
+COME FUNZIONA IL SISTEMA ATTUALE
+---------------------------------
+Il file js/catalog.js fa gia' una chiamata fetch al caricamento
+di ogni pagina categoria. Se l'API non risponde entro 6 secondi,
+il sito mostra automaticamente i dati di esempio (mock).
+
+La chiamata viene fatta su:
+  GET https://api.beymarket.it/v1/listings?category=SLUG
+
+Dove SLUG e' il valore di data-category nel tag <main> di ogni pagina
+(es. "bx-blade", "ratchet", "bit", ecc.)
+
+
+FORMATO JSON RICHIESTO DAL FRONTEND
+-------------------------------------
+Il backend deve rispondere con un array JSON cosi' strutturato:
+
+[
+  {
+    "id": 1,
+    "name": "Dran Sword",
+    "bey": "Dranzer Spiral",
+    "color": "Rosso",
+    "attack": 8,
+    "stamina": 4,
+    "defense": 3,
+    "condition": "NM",
+    "qty": 2,
+    "price": 4.50,
+    "photo": "https://tuostorage.com/immagine.jpg",
+    "category": "bx-blade"
+  },
+  ...
+]
+
+Valori validi per "condition": MN, NM, GD, LP, PO
+  MN = Mint (perfetto)
+  NM = Near Mint
+  GD = Good (buono)
+  LP = Lightly Played (poco usato)
+  PO = Poor (molto usato)
+
+
+OPZIONI PER IL BACKEND
+-----------------------
+
+1. SUPABASE (consigliato - gratis, zero server)
+   Sito: https://supabase.com
+
+2. FIREBASE FIRESTORE (Google)
+   Sito: https://firebase.google.com
+
+3. NODE.JS + EXPRESS + DATABASE LOCALE
+   Richiede un server proprio
+
+4. GOOGLE SHEETS + API pubblica (MVP rapido, limitato)
+
+
+================================================================
+  OPZIONE 1 - SUPABASE (percorso piu' veloce)
+================================================================
+
+STEP 1 - Crea un progetto Supabase
+------------------------------------
+1. Vai su https://supabase.com e registrati
+2. Clicca "New Project"
+3. Scegli un nome (es. "beymarket") e una password per il DB
+4. Aspetta ~2 minuti che il progetto venga avviato
+
+
+STEP 2 - Crea la tabella "listings"
+--------------------------------------
+1. Nel menu laterale clicca "Table Editor" > "New Table"
+2. Nome tabella: listings
+3. Disabilita "Enable Row Level Security (RLS)" per ora (lo riabiliti dopo)
+4. Aggiungi queste colonne:
+
+   Nome colonna     | Tipo        | Note
+   -----------------+-------------+-------------------------------
+   id               | int8        | Primary key, auto-increment
+   created_at       | timestamptz | Default: now()
+   category         | text        | es. "bx-blade"
+   name             | text        | Nome del pezzo
+   bey              | text        | Nome del Beyblade
+   color            | text        | Colore
+   attack           | int4        | Valore 0-10
+   stamina          | int4        | Valore 0-10
+   defense          | int4        | Valore 0-10
+   condition        | text        | MN / NM / GD / LP / PO
+   qty              | int4        | Quantita' disponibile
+   price            | float8      | Prezzo in euro
+   photo            | text        | URL della foto
+
+5. Clicca "Save"
+
+
+STEP 3 - Abilita accesso pubblico in lettura
+----------------------------------------------
+1. Vai su "Authentication" > "Policies"
+2. Trova la tabella "listings"
+3. Clicca "New Policy" > "Get started quickly" > "Enable read access for all users"
+4. Clicca "Review" e poi "Save Policy"
+
+
+STEP 4 - Recupera le credenziali
+-----------------------------------
+1. Vai su "Project Settings" > "API"
+2. Copia:
+   - Project URL  (es. https://abcdefgh.supabase.co)
+   - anon / public key  (stringa che inizia con "eyJhbGci...")
+
+
+STEP 5 - Modifica js/catalog.js
+----------------------------------
+Apri js/catalog.js e sostituisci le prime righe cosi':
+
+  // ----- PRIMA -----
+  const API_BASE = 'https://api.beymarket.it/v1';
+
+  // ----- DOPO -----
+  const SUPABASE_URL = 'https://XXXXXXXX.supabase.co';   // <-- il tuo URL
+  const SUPABASE_KEY = 'eyJhbGci...';                    // <-- la tua anon key
+
+Poi sostituisci l'intera funzione fetchListings con questa:
+
+  async function fetchListings(category) {
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 6000);
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/listings?category=eq.${encodeURIComponent(category)}&select=*`,
+        {
+          signal: controller.signal,
+          headers: {
+            apikey: SUPABASE_KEY,
+            Authorization: `Bearer ${SUPABASE_KEY}`
+          }
+        }
+      );
+      clearTimeout(timer);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    } catch {
+      // Fallback ai dati di esempio se l'API non risponde
+      return MOCK_LISTINGS.filter(l => l.category === category);
+    }
+  }
+
+
+STEP 6 - Inserisci dati di test
+----------------------------------
+Nel menu Supabase vai su "Table Editor" > "listings"
+e inserisci alcune righe tramite l'interfaccia grafica,
+oppure usa l'editor SQL (SQL Editor nel menu laterale):
+
+  INSERT INTO listings (category, name, bey, color, attack, stamina, defense, condition, qty, price, photo)
+  VALUES
+    ('bx-blade', 'Dran Sword', 'Dranzer Spiral', 'Rosso', 8, 4, 3, 'NM', 2, 4.50, 'https://...'),
+    ('ratchet',  'Ratchet 3-60', 'Universale', 'Verde', 0, 0, 0, 'MN', 4, 2.50, 'https://...');
+
+
+STEP 7 - Foto degli utenti
+-----------------------------
+Per le foto caricate dagli utenti usa Supabase Storage:
+1. Vai su "Storage" > "New Bucket" > nome: "product-photos" > Public: ON
+2. L'utente carica la foto e riceve un URL pubblico tipo:
+   https://XXXXXXXX.supabase.co/storage/v1/object/public/product-photos/foto.jpg
+3. Salva quell'URL nella colonna "photo" della tabella listings
+
+
+================================================================
+  OPZIONE 2 - NODE.JS + EXPRESS (server locale o VPS)
+================================================================
+
+REQUISITI
+----------
+- Node.js installato (https://nodejs.org)
+- Un database: SQLite (locale) o MySQL/PostgreSQL (VPS)
+
+
+STEP 1 - Crea la cartella del server
+---------------------------------------
+Crea una cartella separata, es. beymarket-api/
+
+  beymarket-api/
+    server.js
+    db.sqlite       (creato automaticamente)
+    package.json
+
+
+STEP 2 - Installa le dipendenze
+----------------------------------
+Apri un terminale nella cartella beymarket-api/ e lancia:
+
+  npm init -y
+  npm install express cors better-sqlite3
+
+
+STEP 3 - Scrivi il server (server.js)
+----------------------------------------
+Contenuto di server.js:
+
+  const express  = require('express');
+  const cors     = require('cors');
+  const Database = require('better-sqlite3');
+
+  const app = express();
+  const db  = new Database('db.sqlite');
+  app.use(cors());
+  app.use(express.json());
+
+  // Crea la tabella se non esiste
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS listings (
+      id        INTEGER PRIMARY KEY AUTOINCREMENT,
+      category  TEXT NOT NULL,
+      name      TEXT NOT NULL,
+      bey       TEXT,
+      color     TEXT,
+      attack    INTEGER DEFAULT 0,
+      stamina   INTEGER DEFAULT 0,
+      defense   INTEGER DEFAULT 0,
+      condition TEXT,
+      qty       INTEGER DEFAULT 1,
+      price     REAL,
+      photo     TEXT
+    )
+  `);
+
+  // Endpoint che legge i prodotti per categoria
+  app.get('/v1/listings', (req, res) => {
+    const { category } = req.query;
+    if (!category) return res.status(400).json({ error: 'category required' });
+    const rows = db.prepare(
+      'SELECT * FROM listings WHERE category = ? ORDER BY id DESC'
+    ).all(category);
+    res.json(rows);
+  });
+
+  // Endpoint per aggiungere un prodotto
+  app.post('/v1/listings', (req, res) => {
+    const { category, name, bey, color, attack, stamina,
+            defense, condition, qty, price, photo } = req.body;
+    const stmt = db.prepare(`
+      INSERT INTO listings
+        (category,name,bey,color,attack,stamina,defense,condition,qty,price,photo)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?)
+    `);
+    const result = stmt.run(
+      category, name, bey, color, attack, stamina,
+      defense, condition, qty, price, photo
+    );
+    res.json({ id: result.lastInsertRowid });
+  });
+
+  app.listen(3000, () => console.log('API in ascolto su http://localhost:3000'));
+
+
+STEP 4 - Avvia il server
+--------------------------
+  node server.js
+
+Il server risponde su http://localhost:3000
+
+
+STEP 5 - Modifica catalog.js
+-------------------------------
+Cambia solo la prima riga:
+
+  const API_BASE = 'http://localhost:3000';
+
+La funzione fetchListings gia' esistente funziona senza altre modifiche.
+
+
+STEP 6 - Deploy su internet
+-----------------------------
+Per rendere l'API accessibile online usa uno di questi servizi:
+- Railway:  https://railway.app  (gratis, facile)
+- Render:   https://render.com   (gratis tier disponibile)
+- VPS:      Hetzner, DigitalOcean, ecc.
+
+Dopo il deploy sostituisci http://localhost:3000 con l'URL pubblico
+assegnato dal servizio in catalog.js.
+
+
+================================================================
+  NOTE FINALI
+================================================================
+
+SICUREZZA
+----------
+- Non esporre mai chiavi segrete nel codice frontend pubblico.
+  Per Supabase la "anon key" e' pensata per essere pubblica,
+  ma abilita sempre le Row Level Security policies per la
+  scrittura (INSERT, UPDATE, DELETE).
+- Per funzionalita' di scrittura (vendita, inserimento annunci)
+  usa sempre autenticazione utente (Supabase Auth o JWT).
+
+CORS
+-----
+Se il browser blocca le richieste con errore "CORS policy",
+assicurati che il backend risponda con l'header:
+  Access-Control-Allow-Origin: *
+Il server Express sopra lo gestisce automaticamente con il
+pacchetto "cors".
+
+FOTO
+-----
+- Le foto devono essere URL pubblici raggiungibili via browser
+- Dimensione consigliata: 600x400px o superiore
+- Formati supportati: JPG, PNG, WebP
+- Se usi Supabase Storage il bucket deve essere impostato su "Public"
+
+================================================================
+  Fine documentazione
+================================================================

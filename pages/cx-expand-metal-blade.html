@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CX Expand Metal Blade – BeyMarket</title>
+  <title>CX Expand Metal Blade ï¿½ BeyMarket</title>
   <link rel="stylesheet" href="../css/style.css" />
   <script src="../js/theme.js" defer></script>
 </head>
@@ -53,11 +53,70 @@
     </div>
   </header>
   <!-- ===== CONTENUTO ===== -->
-  <main class="container">
-    <h1 class="section-title" style="padding-top:2rem;">CX Expand Metal Blade</h1>
-    <div class="products-grid" id="products-grid">
-      <!-- I prodotti verranno caricati qui -->
-    </div>
+  <main class="catalog-layout" data-category="cx-expand-metal-blade">
+    <!-- SIDEBAR FILTRI -->
+    <aside class="filter-sidebar">
+      <h2 class="filter-sidebar__title">Filtra</h2>
+      <div class="filter-group">
+        <label class="filter-label" for="f-name">Nome pezzo</label>
+        <input type="text" id="f-name" class="filter-input" placeholder="es. Dran Sword" />
+      </div>
+      <div class="filter-group">
+        <label class="filter-label" for="f-bey">Nome Beyblade</label>
+        <input type="text" id="f-bey" class="filter-input" placeholder="es. Dranzer" />
+      </div>
+      <div class="filter-group">
+        <label class="filter-label" for="f-color">Colore</label>
+        <input type="text" id="f-color" class="filter-input" placeholder="es. Rosso" />
+      </div>
+      <div class="filter-group">
+        <label class="filter-label" for="f-attack">Attacco (min)</label>
+        <input type="number" id="f-attack" class="filter-input" min="0" max="10" placeholder="0" />
+      </div>
+      <div class="filter-group">
+        <label class="filter-label" for="f-stamina">Stamina (min)</label>
+        <input type="number" id="f-stamina" class="filter-input" min="0" max="10" placeholder="0" />
+      </div>
+      <div class="filter-group">
+        <label class="filter-label" for="f-defense">Difesa (min)</label>
+        <input type="number" id="f-defense" class="filter-input" min="0" max="10" placeholder="0" />
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Condizione</label>
+        <div class="filter-checkboxes">
+          <label class="check-label"><input type="checkbox" class="f-condition" value="MN" checked><span class="cond-pill mn">MN</span>Mint</label>
+          <label class="check-label"><input type="checkbox" class="f-condition" value="NM" checked><span class="cond-pill nm">NM</span>Near Mint</label>
+          <label class="check-label"><input type="checkbox" class="f-condition" value="GD" checked><span class="cond-pill gd">GD</span>Good</label>
+          <label class="check-label"><input type="checkbox" class="f-condition" value="LP" checked><span class="cond-pill lp">LP</span>Lightly Played</label>
+          <label class="check-label"><input type="checkbox" class="f-condition" value="PO" checked><span class="cond-pill po">PO</span>Poor</label>
+        </div>
+      </div>
+      <button class="filter-btn" id="reset-filters">&#8635; Reset filtri</button>
+    </aside>
+    <!-- CATALOGO PRODOTTI -->
+    <section class="catalog-main">
+      <div class="catalog-header">
+        <h1 class="section-title">CX Expand Metal Blade</h1>
+        <span class="catalog-count" id="catalog-count"></span>
+      </div>
+      <div class="catalog-table-wrap">
+        <table class="catalog-table" id="catalog-table">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Condizione</th>
+              <th>Foto</th>
+              <th>Qt. disp.</th>
+              <th>Quantit&#224;</th>
+              <th>Prezzo</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="catalog-body"></tbody>
+        </table>
+      </div>
+      <p class="catalog-empty" id="catalog-empty" style="display:none;">Nessun annuncio trovato con i filtri selezionati.</p>
+    </section>
   </main>
 
   <!-- ===== FOOTER ===== -->
@@ -100,5 +159,6 @@
     </div>
   </footer>
   <script src="../js/cart.js"></script>
+  <script src="../js/catalog.js"></script>
 </body>
 </html>
