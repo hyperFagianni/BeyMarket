@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Termini di Servizio &mdash; BeyMarket</title>
+  <link rel="icon" type="image/png" href="../assets/logo-piccolo.png" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="../css/style.css" />
+  <script src="../js/theme.js" defer></script>
+  <style>
+    .legal-page { max-width: 820px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+    .legal-page h1 { font-size: 2rem; margin-bottom: 0.4rem; }
+    .legal-page .legal-meta { color: var(--clr-text-mute); font-size: 0.85rem; margin-bottom: 2.5rem; }
+    .legal-page h2 { font-size: 1.15rem; margin: 2rem 0 0.6rem; color: var(--clr-accent); }
+    .legal-page p, .legal-page li { font-size: 0.93rem; line-height: 1.75; color: var(--clr-text-mute); }
+    .legal-page ul { padding-left: 1.4rem; margin: 0.5rem 0; }
+    .legal-page ul li { margin-bottom: 0.3rem; }
+    .legal-page a { color: var(--clr-accent); }
+    .legal-page hr { border: none; border-top: 1px solid var(--clr-border); margin: 2rem 0; }
+  </style>
+</head>
+<body>
+
+  <!-- ===== HEADER / NAVBAR ===== -->
+  <header class="navbar">
+    <a href="../home.html" class="navbar__logo">
+      <img src="../assets/logo.png" alt="BeyMarket Logo" />
+    </a>
+    <nav class="navbar__links">
+      <a href="../home.html" class="nav-link">Home</a>
+      <a href="../pages/bit.html" class="nav-link">Bit</a>
+      <a href="../pages/accessories.html" class="nav-link">Accessori</a>
+      <a href="../pages/launcher.html" class="nav-link">Launcher</a>
+    </nav>
+    <div class="navbar__actions">
+      <div id="navbar-user"></div>
+      <button class="theme-toggle" id="theme-toggle" aria-label="Cambia tema">
+        <span class="toggle-track">
+          <span class="toggle-knob">
+            <svg class="knob-icon knob-icon--sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+              <circle cx="8" cy="8" r="3" fill="currentColor"/>
+              <line x1="8" y1="1" x2="8" y2="3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="8" y1="13" x2="8" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="2.93" y1="2.93" x2="4.34" y2="4.34" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="11.66" y1="11.66" x2="13.07" y2="13.07" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="1" y1="8" x2="3" y2="8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="13" y1="8" x2="15" y2="8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <svg class="knob-icon knob-icon--moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+              <path d="M14 10.5A6 6 0 1 1 7.5 2a4.5 4.5 0 0 0 6.5 8.5z" fill="currentColor"/>
+            </svg>
+          </span>
+        </span>
+      </button>
+      <a href="../pages/cart.html" class="navbar__cart" aria-label="Carrello">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="21" r="1"></circle>
+          <circle cx="20" cy="21" r="1"></circle>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+        </svg>
+        <span class="cart-badge" id="cart-count">0</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- ===== CONTENUTO LEGALE ===== -->
+  <main>
+    <div class="legal-page">
+      <h1>Termini di Servizio</h1>
+      <p class="legal-meta">Ultimo aggiornamento: 3 giugno 2026</p>
+
+      <p>Benvenuto su <strong>BeyMarket</strong>. Utilizzando questo sito web accetti integralmente i presenti Termini di Servizio. Ti invitiamo a leggerli attentamente prima di procedere.</p>
+
+      <h2>1. Descrizione del servizio</h2>
+      <p>BeyMarket è una piattaforma di annunci dedicata alla compravendita di pezzi e accessori Beyblade X tra privati. Il sito mette in contatto acquirenti e venditori, senza intervenire direttamente nella transazione economica né nella consegna dei prodotti.</p>
+
+      <h2>2. Requisiti per l&rsquo;utilizzo</h2>
+      <ul>
+        <li>È necessario avere almeno 14 anni di età per registrarsi. I minori di 18 anni devono ottenere il consenso di un genitore o tutore legale.</li>
+        <li>L&rsquo;account è personale e non cedibile a terzi.</li>
+        <li>Ogni utente può creare un solo account. In caso di account multipli, BeyMarket si riserva il diritto di sospendere tutti gli account coinvolti.</li>
+        <li>I dati forniti in fase di registrazione devono essere veritieri e aggiornati.</li>
+      </ul>
+
+      <h2>3. Annunci e contenuti</h2>
+      <p>I venditori sono i soli responsabili dei contenuti degli annunci pubblicati. In particolare:</p>
+      <ul>
+        <li>Gli annunci devono descrivere fedelmente il prodotto (condizione, tipo, quantità disponibile, prezzo).</li>
+        <li>È vietato pubblicare annunci per prodotti contraffatti, danneggiati oltre quanto dichiarato o non conformi alla normativa vigente.</li>
+        <li>BeyMarket si riserva il diritto di rimuovere senza preavviso annunci che violino questi termini o che risultino segnalati dagli utenti.</li>
+        <li>I prezzi indicati sono espressi in Euro e si intendono IVA inclusa ove applicabile.</li>
+      </ul>
+
+      <h2>4. Transazioni e pagamenti</h2>
+      <p>BeyMarket non gestisce direttamente i pagamenti tra utenti. Le transazioni avvengono tra acquirente e venditore in autonomia. BeyMarket declina ogni responsabilità in caso di:</p>
+      <ul>
+        <li>mancato pagamento da parte dell&rsquo;acquirente;</li>
+        <li>mancata consegna o consegna di prodotto difforme da parte del venditore;</li>
+        <li>controversie insorte tra le parti.</li>
+      </ul>
+      <p>Si raccomanda di utilizzare metodi di pagamento tracciabili e di conservare le ricevute.</p>
+
+      <h2>5. Condotta vietata</h2>
+      <p>È espressamente vietato:</p>
+      <ul>
+        <li>Utilizzare il sito per scopi fraudolenti o illeciti.</li>
+        <li>Pubblicare contenuti offensivi, discriminatori o che violino diritti di terzi.</li>
+        <li>Tentare di accedere senza autorizzazione ai sistemi informatici del sito o agli account altrui.</li>
+        <li>Effettuare scraping automatizzato dei dati presenti sul sito.</li>
+        <li>Vendere articoli non attinenti alla categoria Beyblade X.</li>
+      </ul>
+      <p>La violazione di queste regole comporta la sospensione o la cancellazione permanente dell&rsquo;account.</p>
+
+      <h2>6. Limitazione di responsabilità</h2>
+      <p>BeyMarket fornisce il servizio &ldquo;così com&rsquo;è&rdquo; senza garanzie di continuità o assenza di errori. Non siamo responsabili per danni diretti o indiretti derivanti dall&rsquo;utilizzo o dall&rsquo;impossibilità di utilizzo del sito, incluse perdite economiche legate a transazioni tra utenti.</p>
+
+      <h2>7. Proprietà intellettuale</h2>
+      <p>Il nome BeyMarket, il logo, il design e i testi del sito sono di proprietà esclusiva di BeyMarket. È vietata la riproduzione anche parziale senza esplicita autorizzazione scritta. Il marchio &ldquo;Beyblade&rdquo; è di proprietà di TOMY Company Ltd / Hasbro; BeyMarket non è affiliato né sponsorizzato da questi soggetti.</p>
+
+      <h2>8. Modifiche ai Termini</h2>
+      <p>BeyMarket si riserva il diritto di modificare i presenti Termini in qualsiasi momento. Le modifiche saranno pubblicate su questa pagina con indicazione della data di aggiornamento. L&rsquo;utilizzo continuato del sito dopo la pubblicazione delle modifiche implica l&rsquo;accettazione delle stesse.</p>
+
+      <h2>9. Legge applicabile e foro competente</h2>
+      <p>I presenti Termini sono regolati dalla legge italiana. Per qualsiasi controversia relativa all&rsquo;utilizzo del sito, il foro competente è quello del luogo di residenza del consumatore, ai sensi del Codice del Consumo (D.Lgs. 206/2005).</p>
+
+      <h2>10. Contatti</h2>
+      <p>Per qualsiasi domanda relativa ai presenti Termini puoi scrivere a: <a href="mailto:info@beymarket.it">info@beymarket.it</a></p>
+
+      <hr />
+      <p style="font-size:0.82rem;">Vedi anche: <a href="privacy-policy.html">Privacy Policy</a> &mdash; <a href="cookie-policy.html">Cookie Policy</a></p>
+    </div>
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <div class="container footer__grid">
+      <div class="footer__col">
+        <a href="../home.html" class="footer__logo">
+          <img src="../assets/logo.png" alt="BeyMarket" />
+        </a>
+        <p>Il mercato italiano dedicato ai pezzi Beyblade X.<br />Compra, vendi, sfida.</p>
+      </div>
+      <div class="footer__col">
+        <h4>Link Utili</h4>
+        <ul>
+          <li><a href="../home.html">Home</a></li>
+          <li><a href="../pages/accessories.html">Accessori</a></li>
+          <li><a href="../pages/launcher.html">Launcher</a></li>
+          <li><a href="../pages/bit.html">Bit</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4>Contatti</h4>
+        <ul>
+          <li><a href="mailto:info@beymarket.it">info@beymarket.it</a></li>
+          <li><a href="#">Instagram</a></li>
+          <li><a href="#">Discord</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4>Informazioni Legali</h4>
+        <ul>
+          <li><a href="termini-di-servizio.html">Termini di servizio</a></li>
+          <li><a href="privacy-policy.html">Privacy Policy</a></li>
+          <li><a href="cookie-policy.html">Cookie Policy</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <p>&copy; 2026 BeyMarket. Tutti i diritti riservati.</p>
+    </div>
+  </footer>
+
+  <script src="../js/auth.js"></script>
+  <script src="../js/cart.js"></script>
+
+  <!-- ===== AUTH MODAL ===== -->
+  <div class="auth-overlay" id="auth-overlay" aria-hidden="true">
+    <div class="auth-modal" role="dialog" aria-modal="true">
+      <button class="auth-modal__close" id="auth-close" aria-label="Chiudi">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+      <h2 class="auth-modal__title">Il tuo account</h2>
+      <div class="auth-tabs">
+        <button class="auth-tab auth-tab--active" data-tab="login">Accedi</button>
+        <button class="auth-tab" data-tab="register">Registrati</button>
+      </div>
+      <form class="auth-form" id="form-login">
+        <div class="auth-field">
+          <label class="auth-field__label" for="login-email">Email</label>
+          <input class="auth-field__input" type="email" id="login-email" placeholder="nome@email.com" autocomplete="email" required />
+        </div>
+        <div class="auth-field">
+          <label class="auth-field__label" for="login-password">Password</label>
+          <input class="auth-field__input" type="password" id="login-password" placeholder="min. 6 caratteri" autocomplete="current-password" required />
+        </div>
+        <p class="auth-error" id="login-error"></p>
+        <button type="submit" class="btn btn--primary auth-submit">Accedi</button>
+      </form>
+      <form class="auth-form" id="form-register" hidden>
+        <div class="auth-field">
+          <label class="auth-field__label" for="reg-email">Email</label>
+          <input class="auth-field__input" type="email" id="reg-email" placeholder="nome@email.com" autocomplete="email" required />
+        </div>
+        <div class="auth-field">
+          <label class="auth-field__label" for="reg-password">Password</label>
+          <input class="auth-field__input" type="password" id="reg-password" placeholder="min. 6 caratteri" autocomplete="new-password" required minlength="6" />
+        </div>
+        <p class="auth-error" id="reg-error"></p>
+        <button type="submit" class="btn btn--primary auth-submit">Registrati</button>
+      </form>
+    </div>
+  </div>
+  <div class="session-expired-banner" id="session-expired-banner" hidden>
+    La tua sessione è scaduta. <button class="btn btn--sm" onclick="window.BeyAuth.openModal('login')">Accedi di nuovo</button>
+  </div>
+</body>
+</html>

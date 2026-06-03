@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cookie Policy &mdash; BeyMarket</title>
+  <link rel="icon" type="image/png" href="../assets/logo-piccolo.png" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="../css/style.css" />
+  <script src="../js/theme.js" defer></script>
+  <style>
+    .legal-page { max-width: 820px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+    .legal-page h1 { font-size: 2rem; margin-bottom: 0.4rem; }
+    .legal-page .legal-meta { color: var(--clr-text-mute); font-size: 0.85rem; margin-bottom: 2.5rem; }
+    .legal-page h2 { font-size: 1.15rem; margin: 2rem 0 0.6rem; color: var(--clr-accent); }
+    .legal-page p, .legal-page li { font-size: 0.93rem; line-height: 1.75; color: var(--clr-text-mute); }
+    .legal-page ul { padding-left: 1.4rem; margin: 0.5rem 0; }
+    .legal-page ul li { margin-bottom: 0.3rem; }
+    .legal-page a { color: var(--clr-accent); }
+    .legal-page hr { border: none; border-top: 1px solid var(--clr-border); margin: 2rem 0; }
+    .legal-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.88rem; }
+    .legal-table th, .legal-table td { text-align: left; padding: 0.55rem 0.75rem; border-bottom: 1px solid var(--clr-border); color: var(--clr-text-mute); }
+    .legal-table th { color: var(--clr-text); font-weight: 600; }
+    .cookie-badge { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.03em; }
+    .cookie-badge--required  { background: rgba(91,127,255,0.15); color: #5b7fff; }
+    .cookie-badge--analytics { background: rgba(247,201,72,0.15); color: #c89828; }
+    .cookie-badge--pref      { background: rgba(59,224,160,0.15); color: #1db87a; }
+  </style>
+</head>
+<body>
+
+  <!-- ===== HEADER / NAVBAR ===== -->
+  <header class="navbar">
+    <a href="../home.html" class="navbar__logo">
+      <img src="../assets/logo.png" alt="BeyMarket Logo" />
+    </a>
+    <nav class="navbar__links">
+      <a href="../home.html" class="nav-link">Home</a>
+      <a href="../pages/bit.html" class="nav-link">Bit</a>
+      <a href="../pages/accessories.html" class="nav-link">Accessori</a>
+      <a href="../pages/launcher.html" class="nav-link">Launcher</a>
+    </nav>
+    <div class="navbar__actions">
+      <div id="navbar-user"></div>
+      <button class="theme-toggle" id="theme-toggle" aria-label="Cambia tema">
+        <span class="toggle-track">
+          <span class="toggle-knob">
+            <svg class="knob-icon knob-icon--sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+              <circle cx="8" cy="8" r="3" fill="currentColor"/>
+              <line x1="8" y1="1" x2="8" y2="3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="8" y1="13" x2="8" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="2.93" y1="2.93" x2="4.34" y2="4.34" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="11.66" y1="11.66" x2="13.07" y2="13.07" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="1" y1="8" x2="3" y2="8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="13" y1="8" x2="15" y2="8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <svg class="knob-icon knob-icon--moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+              <path d="M14 10.5A6 6 0 1 1 7.5 2a4.5 4.5 0 0 0 6.5 8.5z" fill="currentColor"/>
+            </svg>
+          </span>
+        </span>
+      </button>
+      <a href="../pages/cart.html" class="navbar__cart" aria-label="Carrello">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="21" r="1"></circle>
+          <circle cx="20" cy="21" r="1"></circle>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+        </svg>
+        <span class="cart-badge" id="cart-count">0</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- ===== CONTENUTO LEGALE ===== -->
+  <main>
+    <div class="legal-page">
+      <h1>Cookie Policy</h1>
+      <p class="legal-meta">Ultimo aggiornamento: 3 giugno 2026 &mdash; ai sensi dell&rsquo;art. 122 D.Lgs. 196/2003 e Provvedimento Garante 8 maggio 2014</p>
+
+      <p>Questa Cookie Policy spiega cosa sono i cookie, quali utilizziamo su <strong>BeyMarket</strong>, a cosa servono e come puoi gestirli o disattivarli.</p>
+
+      <h2>1. Cosa sono i cookie</h2>
+      <p>I cookie sono piccoli file di testo che i siti web salvano sul tuo dispositivo (computer, tablet, smartphone) quando li visiti. Vengono poi restituiti al sito ad ogni visita successiva per migliorare l&rsquo;esperienza utente, ricordare le preferenze e raccogliere statistiche di utilizzo.</p>
+      <p>Oltre ai cookie tradizionali, utilizziamo tecnologie simili come <strong>localStorage</strong> e <strong>sessionStorage</strong> del browser per memorizzare dati localmente senza inviarli al server.</p>
+
+      <h2>2. Tipologie di cookie utilizzati</h2>
+
+      <h3 style="font-size:1rem; margin:1.5rem 0 0.4rem; color:var(--clr-text);">2a. Cookie tecnici (strettamente necessari)</h3>
+      <p>Questi cookie sono indispensabili per il funzionamento del sito e non richiedono il consenso dell&rsquo;utente.</p>
+      <table class="legal-table">
+        <thead>
+          <tr><th>Nome / Chiave</th><th>Tipo</th><th>Durata</th><th>Finalità</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>beymarket_session</code></td>
+            <td><span class="cookie-badge cookie-badge--required">Richiesto</span></td>
+            <td>24 ore</td>
+            <td>Mantiene la sessione di accesso dell&rsquo;utente autenticato (localStorage)</td>
+          </tr>
+          <tr>
+            <td><code>beymarket_cart</code></td>
+            <td><span class="cookie-badge cookie-badge--required">Richiesto</span></td>
+            <td>Sessione browser</td>
+            <td>Memorizza il contenuto del carrello acquisti (localStorage)</td>
+          </tr>
+          <tr>
+            <td>Cookie di sessione Supabase</td>
+            <td><span class="cookie-badge cookie-badge--required">Richiesto</span></td>
+            <td>Sessione</td>
+            <td>Gestione autenticazione tramite Supabase Auth</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 style="font-size:1rem; margin:1.5rem 0 0.4rem; color:var(--clr-text);">2b. Cookie di preferenza</h3>
+      <p>Ricordano le tue scelte per migliorare la tua esperienza. Non richiedono consenso in quanto non tracciano l&rsquo;utente tra siti diversi.</p>
+      <table class="legal-table">
+        <thead>
+          <tr><th>Nome / Chiave</th><th>Tipo</th><th>Durata</th><th>Finalità</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>beymarket_theme</code></td>
+            <td><span class="cookie-badge cookie-badge--pref">Preferenza</span></td>
+            <td>Persistente</td>
+            <td>Salva la preferenza tema chiaro/scuro (localStorage)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 style="font-size:1rem; margin:1.5rem 0 0.4rem; color:var(--clr-text);">2c. Cookie analitici (di terze parti)</h3>
+      <p>Attualmente BeyMarket <strong>non utilizza</strong> cookie analitici o di profilazione di terze parti (es. Google Analytics). Qualora venissero introdotti in futuro, questa Policy sarà aggiornata e verrà richiesto il consenso esplicito.</p>
+
+      <h2>3. Cookie di terze parti</h2>
+      <p>Il sito carica la libreria <strong>Supabase JS</strong> da CDN (<code>cdn.jsdelivr.net</code>) per la gestione del database e dell&rsquo;autenticazione. jsDelivr potrebbe impostare cookie tecnici propri per il funzionamento del CDN; consulta la loro <a href="https://www.jsdelivr.com/terms/privacy-policy-jsdelivr-net" target="_blank" rel="noopener">privacy policy</a> per dettagli.</p>
+      <p>Non integriamo pulsanti social, pixel di tracciamento pubblicitario o widget di terze parti che impostino cookie di profilazione.</p>
+
+      <h2>4. Come gestire i cookie</h2>
+      <p>Puoi gestire, limitare o eliminare i cookie in qualsiasi momento attraverso le impostazioni del tuo browser:</p>
+      <ul>
+        <li><a href="https://support.google.com/chrome/answer/95647" target="_blank" rel="noopener">Google Chrome</a></li>
+        <li><a href="https://support.mozilla.org/it/kb/protezione-antitracciamento-avanzata-firefox" target="_blank" rel="noopener">Mozilla Firefox</a></li>
+        <li><a href="https://support.apple.com/it-it/guide/safari/sfri11471/mac" target="_blank" rel="noopener">Apple Safari</a></li>
+        <li><a href="https://support.microsoft.com/it-it/windows/eliminare-e-gestire-i-cookie-168dab11-0753-043d-7c16-ede5947fc64d" target="_blank" rel="noopener">Microsoft Edge</a></li>
+      </ul>
+      <p>Tieni presente che la disabilitazione dei cookie tecnici (<code>beymarket_session</code>, <code>beymarket_cart</code>) impedirà il corretto funzionamento del sito: non potrai effettuare il login né mantenere il carrello tra le pagine.</p>
+      <p>Per cancellare le chiavi localStorage di BeyMarket puoi aprire gli <strong>Strumenti per sviluppatori</strong> del browser (F12) &rarr; scheda <em>Applicazione</em> &rarr; <em>Archiviazione locale</em> e rimuovere le voci che iniziano con <code>beymarket_</code>.</p>
+
+      <h2>5. Consenso</h2>
+      <p>Al primo accesso al sito viene mostrato un banner informativo sui cookie. I cookie tecnici e di preferenza elencati nella sezione 2a e 2b vengono impostati senza consenso in quanto necessari al funzionamento del servizio, nel rispetto del Provvedimento Garante Privacy 8 maggio 2014 e delle Linee Guida del 10 giugno 2021.</p>
+      <p>Qualora in futuro introducessimo cookie analitici o di profilazione, il consenso sarà raccolto separatamente per categoria prima dell&rsquo;attivazione.</p>
+
+      <h2>6. Aggiornamenti alla Cookie Policy</h2>
+      <p>Questa Cookie Policy può essere aggiornata per riflettere modifiche tecniche o normative. La data di &ldquo;Ultimo aggiornamento&rdquo; in cima alla pagina indica quando è stata rilasciata l&rsquo;ultima versione.</p>
+
+      <h2>7. Contatti</h2>
+      <p>Per domande relative ai cookie o al trattamento dei dati scrivi a <a href="mailto:privacy@beymarket.it">privacy@beymarket.it</a>.</p>
+
+      <hr />
+      <p style="font-size:0.82rem;">Vedi anche: <a href="termini-di-servizio.html">Termini di Servizio</a> &mdash; <a href="privacy-policy.html">Privacy Policy</a></p>
+    </div>
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <div class="container footer__grid">
+      <div class="footer__col">
+        <a href="../home.html" class="footer__logo">
+          <img src="../assets/logo.png" alt="BeyMarket" />
+        </a>
+        <p>Il mercato italiano dedicato ai pezzi Beyblade X.<br />Compra, vendi, sfida.</p>
+      </div>
+      <div class="footer__col">
+        <h4>Link Utili</h4>
+        <ul>
+          <li><a href="../home.html">Home</a></li>
+          <li><a href="../pages/accessories.html">Accessori</a></li>
+          <li><a href="../pages/launcher.html">Launcher</a></li>
+          <li><a href="../pages/bit.html">Bit</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4>Contatti</h4>
+        <ul>
+          <li><a href="mailto:info@beymarket.it">info@beymarket.it</a></li>
+          <li><a href="#">Instagram</a></li>
+          <li><a href="#">Discord</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4>Informazioni Legali</h4>
+        <ul>
+          <li><a href="termini-di-servizio.html">Termini di servizio</a></li>
+          <li><a href="privacy-policy.html">Privacy Policy</a></li>
+          <li><a href="cookie-policy.html">Cookie Policy</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <p>&copy; 2026 BeyMarket. Tutti i diritti riservati.</p>
+    </div>
+  </footer>
+
+  <script src="../js/auth.js"></script>
+  <script src="../js/cart.js"></script>
+
+  <!-- ===== AUTH MODAL ===== -->
+  <div class="auth-overlay" id="auth-overlay" aria-hidden="true">
+    <div class="auth-modal" role="dialog" aria-modal="true">
+      <button class="auth-modal__close" id="auth-close" aria-label="Chiudi">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+      <h2 class="auth-modal__title">Il tuo account</h2>
+      <div class="auth-tabs">
+        <button class="auth-tab auth-tab--active" data-tab="login">Accedi</button>
+        <button class="auth-tab" data-tab="register">Registrati</button>
+      </div>
+      <form class="auth-form" id="form-login">
+        <div class="auth-field">
+          <label class="auth-field__label" for="login-email">Email</label>
+          <input class="auth-field__input" type="email" id="login-email" placeholder="nome@email.com" autocomplete="email" required />
+        </div>
+        <div class="auth-field">
+          <label class="auth-field__label" for="login-password">Password</label>
+          <input class="auth-field__input" type="password" id="login-password" placeholder="min. 6 caratteri" autocomplete="current-password" required />
+        </div>
+        <p class="auth-error" id="login-error"></p>
+        <button type="submit" class="btn btn--primary auth-submit">Accedi</button>
+      </form>
+      <form class="auth-form" id="form-register" hidden>
+        <div class="auth-field">
+          <label class="auth-field__label" for="reg-email">Email</label>
+          <input class="auth-field__input" type="email" id="reg-email" placeholder="nome@email.com" autocomplete="email" required />
+        </div>
+        <div class="auth-field">
+          <label class="auth-field__label" for="reg-password">Password</label>
+          <input class="auth-field__input" type="password" id="reg-password" placeholder="min. 6 caratteri" autocomplete="new-password" required minlength="6" />
+        </div>
+        <p class="auth-error" id="reg-error"></p>
+        <button type="submit" class="btn btn--primary auth-submit">Registrati</button>
+      </form>
+    </div>
+  </div>
+  <div class="session-expired-banner" id="session-expired-banner" hidden>
+    La tua sessione è scaduta. <button class="btn btn--sm" onclick="window.BeyAuth.openModal('login')">Accedi di nuovo</button>
+  </div>
+</body>
+</html>
