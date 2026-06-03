@@ -1594,3 +1594,49 @@ h1.category-btn__label::before {
 [data-theme="light"] .navbar__username {
   color: var(--clr-text);
 }
+/* ============================================================
+   TIPO PEZZO  --  badge nella griglia e pill nei filtri
+   ============================================================ */
+
+/* --- Colonna tipo nella tabella --- */
+.col-type { width: 44px; text-align: center; }
+
+/* --- Badge tipo (nella riga catalogo) --- */
+.type-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+.type-badge svg { width: 17px; height: 17px; display: block; overflow: visible; }
+
+.type-badge--attack  { background: rgba(180,140,28,0.2);  border: 1px solid rgba(180,140,28,0.4); }
+.type-badge--stamina { background: rgba(100,118,142,0.2); border: 1px solid rgba(100,118,142,0.4); }
+.type-badge--defense { background: rgba(88,104,126,0.22); border: 1px solid rgba(88,104,126,0.42); }
+.type-badge--none    { color: var(--clr-text-mute); font-size: 0.85rem; width: 24px; height: 24px; border: none; background: none; }
+
+/* --- Pill tipo (nella sidebar filtri) --- */
+.type-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px; height: 20px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+.type-pill svg { width: 13px; height: 13px; display: block; overflow: visible; }
+
+.type-pill--attack  { background: rgba(180,140,28,0.22);  border: 1px solid rgba(180,140,28,0.42); }
+.type-pill--stamina { background: rgba(100,118,142,0.22); border: 1px solid rgba(100,118,142,0.42); }
+.type-pill--defense { background: rgba(88,104,126,0.24);  border: 1px solid rgba(88,104,126,0.44); }
+
+/* Light theme overrides */
+[data-theme="light"] .type-badge--attack  { background: rgba(180,140,28,0.14); }
+[data-theme="light"] .type-badge--stamina { background: rgba(100,118,142,0.14); }
+[data-theme="light"] .type-badge--defense { background: rgba(88,104,126,0.14); }
+[data-theme="light"] .type-pill--attack   { background: rgba(180,140,28,0.14); }
+[data-theme="light"] .type-pill--stamina  { background: rgba(100,118,142,0.14); }
+[data-theme="light"] .type-pill--defense  { background: rgba(88,104,126,0.14); }
