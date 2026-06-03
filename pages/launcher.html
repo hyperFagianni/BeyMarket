@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Launcher – BeyMarket</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <script src="../js/theme.js" defer></script>
+</head>
+<body>
+
+  <!-- ===== HEADER / NAVBAR ===== -->
+  <header class="navbar">
+    <a href="../home.html" class="navbar__logo">
+      <img src="../assets/logo.png" alt="BeyMarket Logo" />
+    </a>
+
+    <nav class="navbar__links">
+      <a href="../home.html" class="nav-link">Home</a>
+      <a href="bit.html" class="nav-link">Bit</a>
+      <a href="accessories.html" class="nav-link">Accessori</a>
+      <a href="launcher.html" class="nav-link">Launcher</a>
+    </nav>
+
+    <div class="navbar__actions">
+      <button class="theme-toggle" id="theme-toggle" aria-label="Cambia tema">
+        <span class="toggle-track">
+          <span class="toggle-knob">
+            <svg class="knob-icon knob-icon--sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+              <circle cx="8" cy="8" r="3" fill="currentColor"/>
+              <line x1="8" y1="1" x2="8" y2="3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="8" y1="13" x2="8" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="2.93" y1="2.93" x2="4.34" y2="4.34" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="11.66" y1="11.66" x2="13.07" y2="13.07" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="1" y1="8" x2="3" y2="8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="13" y1="8" x2="15" y2="8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <svg class="knob-icon knob-icon--moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+              <path d="M14 10.5A6 6 0 1 1 7.5 2a4.5 4.5 0 0 0 6.5 8.5z" fill="currentColor"/>
+            </svg>
+          </span>
+        </span>
+      </button>
+      <a href="cart.html" class="navbar__cart" aria-label="Carrello">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="21" r="1"></circle>
+          <circle cx="20" cy="21" r="1"></circle>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+        </svg>
+        <span class="cart-badge" id="cart-count">0</span>
+      </a>
+    </div>
+  </header>
+  <!-- ===== CONTENUTO ===== -->
+  <main class="container">
+    <h1 class="section-title" style="padding-top:2rem;">Launcher</h1>
+    <div class="products-grid" id="products-grid">
+      <!-- I prodotti verranno caricati qui -->
+    </div>
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <div class="container footer__grid">
+      <div class="footer__col">
+        <a href="../home.html" class="footer__logo">
+          <img src="../assets/logo.png" alt="BeyMarket" />
+        </a>
+        <p>Il mercato italiano dedicato ai pezzi Beyblade X.<br />Compra, vendi, sfida.</p>
+      </div>
+      <div class="footer__col">
+        <h4>Link Utili</h4>
+        <ul>
+          <li><a href="../home.html">Home</a></li>
+          <li><a href="accessories.html">Accessori</a></li>
+          <li><a href="launcher.html">Launcher</a></li>
+          <li><a href="bit.html">Bit</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4>Contatti</h4>
+        <ul>
+          <li><a href="mailto:info@beymarket.it">info@beymarket.it</a></li>
+          <li><a href="#">Instagram</a></li>
+          <li><a href="#">Discord</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4>Informazioni Legali</h4>
+        <ul>
+          <li><a href="#">Termini di servizio</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Cookie Policy</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <p>&copy; 2026 BeyMarket. Tutti i diritti riservati.</p>
+    </div>
+  </footer>
+  <script src="../js/cart.js"></script>
+</body>
+</html>
