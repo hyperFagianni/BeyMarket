@@ -183,8 +183,17 @@ function bindCart() {
     const img   = row.dataset.img;
     const qty   = parseInt(document.getElementById(`qty-${id}`)?.value ?? 1);
 
+    if (!window.BeyAuth?.isAuthenticated()) {
+      // Non autenticato: mostra la modale di login e blocca il bottone
+      btn.classList.add('btn-cart-row--locked');
+      btn.disabled = true;
+      btn.title    = 'Accedi per aggiungere al carrello';
+      window.BeyAuth?.openModal('login');
+      return;
+    }
+
     if (typeof addToCart === 'function') {
-      for (let i = 0; i < qty; i++) addToCart(name, price, img);
+      addToCart(name, parseFloat(row.dataset.price), img, id, qty);
     }
 
     btn.classList.add('btn-cart-row--added');

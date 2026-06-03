@@ -1,0 +1,342 @@
+================================================================
+  BEYMARKET — SISTEMA AUTENTICAZIONE & DATABASE
+  Documentazione tecnica v1.0  |  aggiornato: giugno 2026
+================================================================
+
+
+────────────────────────────────────────────────────────────────
+  1. PANORAMICA DEL SISTEMA
+────────────────────────────────────────────────────────────────
+
+Il sistema di autenticazione di BeyMarket gestisce:
+
+  • Registrazione nuovi utenti
+  • Login / Logout
+  • Sessione locale con scadenza automatica dopo 24 ore
+  • Blocco del pulsante "Aggiungi al carrello" per utenti non autenticati
+  • Checkout con aggiornamento automatico delle quantità nel database
+    (cancella il record se le unità si esauriscono)
+
+Il sistema funziona in due modalità:
+
+  ┌─────────────────────────────────────────────────────────────┐
+  │  DEMO MODE  (default, senza configurazione)                 │
+  │  Utenti salvati in localStorage del browser.                │
+  │  Nessun server richiesto. Solo per sviluppo locale.         │
+  │  Le password sono in chiaro — NON usare in produzione.      │
+  └─────────────────────────────────────────────────────────────┘
+
+  ┌─────────────────────────────────────────────────────────────┐
+  │  SUPABASE MODE  (produzione)                                │
+  │  Autenticazione gestita da Supabase Auth.                   │
+  │  Utenti salvati nel database Supabase (tabella auth.users). │
+  │  Password hashate lato server da Supabase.                  │
+  └─────────────────────────────────────────────────────────────┘
+
+La modalità attiva si determina automaticamente: se SB_URL in
+js/auth.js contiene ancora 'XXXXXXXX', il sito usa la Demo Mode.
+Appena inserisci le credenziali reali, si attiva Supabase Mode.
+
+
+────────────────────────────────────────────────────────────────
+  2. FILE COINVOLTI
+────────────────────────────────────────────────────────────────
+
+  js/auth.js          — logica autenticazione completa
+  js/cart.js          — carrello + checkout con aggiornamento DB
+  js/catalog.js       — catalogo prodotti (auth check sui bottoni)
+  css/style.css       — stili modale, navbar utente, banner sessione
+  home.html           — homepage
+  pages/*.html        — tutte le pagine categoria + carrello
+
+
+────────────────────────────────────────────────────────────────
+  3. COME FUNZIONA IN DETTAGLIO
+────────────────────────────────────────────────────────────────
+
+3.1 SESSIONE LOCALE (localStorage)
+───────────────────────────────────
+Dopo il login viene salvata una sessione in localStorage con:
+
+  chiave: beymarket_session
+  valore: { id, email, loginAt }
+
+  - loginAt è il timestamp del login (millisecondi)
+  - Ogni volta che si chiama BeyAuth.isAuthenticated() viene
+    controllato se sono passate più di 24 ore da loginAt.
+  - Se la sessione è scaduta, viene cancellata automaticamente.
+  - Ogni 30 secondi un watcher controlla la scadenza e mostra
+    un banner in basso alla pagina se la sessione è appena scaduta.
+
+
+3.2 APERTURA MODALE
+────────────────────
+La modale si apre chiamando:
+
+  window.BeyAuth.openModal()           → apre sul tab "Accedi"
+  window.BeyAuth.openModal('login')    → apre sul tab "Accedi"
+  window.BeyAuth.openModal('register') → apre sul tab "Registrati"
+
+La modale si chiude con il tasto X, cliccando fuori, o premendo Esc.
+
+
+3.3 PULSANTI CARRELLO BLOCCATI
+────────────────────────────────
+In ogni pagina catalogo (catalog.js), quando si clicca
+"Aggiungi al carrello":
+
+  1. Si controlla window.BeyAuth.isAuthenticated()
+  2. Se NON autenticato:
+       - Il bottone riceve classe .btn-cart-row--locked
+       - Il bottone viene disabilitato
+       - Si apre la modale di login
+  3. Se autenticato:
+       - Si chiama addToCart(name, price, img, listingId, qty)
+
+Dopo il login/registrazione, onAuthSuccess() rimuove la classe
+.btn-cart-row--locked da tutti i bottoni bloccati nella pagina.
+
+
+3.4 CHECKOUT
+─────────────
+Quando l'utente clicca "Procedi al pagamento" in cart.html:
+
+  1. Si verifica autenticazione → se mancante, apre il login
+  2. Si leggono tutti gli articoli nel carrello (localStorage)
+  3. Per ogni articolo con listingId (collegato al DB):
+       a. Si legge la quantità attuale dalla tabella listings
+       b. Si sottrae la quantità acquistata
+       c. Se newQty <= 0 → DELETE del record (articolo esaurito)
+       d. Se newQty > 0  → UPDATE qty = newQty
+  4. Il carrello locale viene svuotato
+  5. Viene mostrata una schermata di conferma ordine
+
+
+────────────────────────────────────────────────────────────────
+  4. CONFIGURARE SUPABASE (PRODUZIONE)
+────────────────────────────────────────────────────────────────
+
+STEP 1 — Crea il progetto Supabase
+────────────────────────────────────
+  1. Vai su https://supabase.com e crea un account gratuito
+  2. Crea un nuovo progetto (scegli la regione Europe West)
+  3. Aspetta che il progetto sia attivo (circa 1 minuto)
+
+
+STEP 2 — Copia le credenziali
+───────────────────────────────
+  Nel pannello Supabase: Settings → API
+
+  Copia questi due valori:
+    - Project URL   → es. https://xyzabc123.supabase.co
+    - anon public   → chiave JWT lunga (inizia con "eyJ...")
+
+
+STEP 3 — Inseriscili in auth.js
+─────────────────────────────────
+  Apri js/auth.js e modifica le prime righe:
+
+    const SB_URL = 'https://xyzabc123.supabase.co';   // il tuo URL
+    const SB_KEY = 'eyJhbGciOiJIUzI1NiIs...';         // la tua anon key
+
+  Da questo momento il sito usa Supabase Auth automaticamente.
+  Le password vengono gestite lato server (hashed con bcrypt).
+
+
+STEP 4 — Crea la tabella listings nel database
+────────────────────────────────────────────────
+  Nel pannello Supabase → SQL Editor, esegui:
+
+  ┌──────────────────────────────────────────────────────────────┐
+  │  create table public.listings (                              │
+  │    id          uuid primary key default gen_random_uuid(),   │
+  │    name        text not null,                                │
+  │    category    text not null,                                │
+  │    price       numeric(10,2) not null,                       │
+  │    condition   text default 'Nuovo',                         │
+  │    qty         integer not null default 1,                   │
+  │    img         text,                                         │
+  │    seller_id   uuid references auth.users(id),               │
+  │    created_at  timestamptz default now()                     │
+  │  );                                                          │
+  └──────────────────────────────────────────────────────────────┘
+
+
+STEP 5 — Configura le policy RLS (sicurezza)
+──────────────────────────────────────────────
+  RLS (Row Level Security) protegge i dati. Esegui nel SQL Editor:
+
+  -- Chiunque può leggere i listing (catalogo pubblico)
+  create policy "listings_select_public"
+    on public.listings for select
+    using (true);
+
+  -- Solo l'utente loggato può modificare i propri listing
+  create policy "listings_update_owner"
+    on public.listings for update
+    using (auth.uid() = seller_id);
+
+  -- Solo l'utente loggato può cancellare i propri listing
+  create policy "listings_delete_owner"
+    on public.listings for delete
+    using (auth.uid() = seller_id);
+
+  -- Attiva RLS sulla tabella
+  alter table public.listings enable row level security;
+
+  NOTA: Per il checkout (aggiornamento quantità dopo acquisto)
+  servirà una policy che permetta agli utenti autenticati di
+  fare UPDATE su listing altrui (solo il campo qty). Oppure
+  usa una Supabase Edge Function server-side per gestirlo in
+  modo più sicuro. Vedi STEP 7.
+
+
+STEP 6 — Abilita Auth Emails (opzionale ma consigliato)
+─────────────────────────────────────────────────────────
+  Nel pannello: Authentication → Email Templates
+
+  Di default Supabase invia una mail di conferma alla
+  registrazione. Puoi personalizzare il testo in italiano.
+
+  Per disabilitare la conferma email (utile in sviluppo):
+  Authentication → Settings → "Confirm email" → OFF
+
+
+STEP 7 — Edge Function per checkout sicuro (avanzato)
+───────────────────────────────────────────────────────
+  Per gestire il checkout lato server (più sicuro), crea
+  una Supabase Edge Function:
+
+  1. Installa Supabase CLI:
+     npm install -g supabase
+
+  2. Crea la funzione:
+     supabase functions new checkout
+
+  3. Contenuto di supabase/functions/checkout/index.ts:
+
+     import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+     Deno.serve(async (req) => {
+       const { cart } = await req.json()
+       const supabase = createClient(
+         Deno.env.get('SUPABASE_URL')!,
+         Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+       )
+       for (const item of cart) {
+         if (!item.listingId) continue
+         const { data } = await supabase
+           .from('listings').select('qty').eq('id', item.listingId).single()
+         if (!data) continue
+         const newQty = data.qty - item.qty
+         if (newQty <= 0) {
+           await supabase.from('listings').delete().eq('id', item.listingId)
+         } else {
+           await supabase.from('listings').update({ qty: newQty }).eq('id', item.listingId)
+         }
+       }
+       return new Response(JSON.stringify({ ok: true }), { status: 200 })
+     })
+
+  4. Deploy:
+     supabase functions deploy checkout
+
+  5. In cart.js, nella funzione handleCheckout(), sostituisci
+     il blocco "if (db)" con una fetch alla tua Edge Function:
+
+     const res = await fetch('https://xyzabc123.supabase.co/functions/v1/checkout', {
+       method: 'POST',
+       headers: {
+         'Content-Type': 'application/json',
+         'Authorization': 'Bearer ' + (await db.auth.getSession()).data.session.access_token
+       },
+       body: JSON.stringify({ cart })
+     })
+     if (!res.ok) throw new Error('Errore server durante il checkout')
+
+
+────────────────────────────────────────────────────────────────
+  5. TRACCIARE GLI UTENTI REGISTRATI (tabella profiles)
+────────────────────────────────────────────────────────────────
+
+  Supabase salva gli utenti in auth.users (tabella interna,
+  non direttamente accessibile via API pubblica).
+  
+  Per tenere un registro pubblico degli utenti, crea una
+  tabella profiles collegata:
+
+  create table public.profiles (
+    id         uuid primary key references auth.users(id) on delete cascade,
+    email      text,
+    username   text,
+    created_at timestamptz default now()
+  );
+
+  -- Trigger: crea automaticamente un profilo ad ogni registrazione
+  create or replace function public.handle_new_user()
+  returns trigger as $$
+  begin
+    insert into public.profiles (id, email)
+    values (new.id, new.email);
+    return new;
+  end;
+  $$ language plpgsql security definer;
+
+  create trigger on_auth_user_created
+    after insert on auth.users
+    for each row execute procedure public.handle_new_user();
+
+  Ora ogni volta che un utente si registra, appare anche in
+  public.profiles. Puoi visualizzarla nel pannello Database.
+
+
+────────────────────────────────────────────────────────────────
+  6. API PUBBLICA  (window.BeyAuth)
+────────────────────────────────────────────────────────────────
+
+  Puoi usare questi metodi in qualsiasi script della pagina:
+
+  window.BeyAuth.isAuthenticated()
+    → restituisce true/false
+
+  window.BeyAuth.getUser()
+    → restituisce { id, email, loginAt } oppure null
+
+  window.BeyAuth.openModal()
+  window.BeyAuth.openModal('login')
+  window.BeyAuth.openModal('register')
+    → apre la modale di autenticazione
+
+
+────────────────────────────────────────────────────────────────
+  7. VARIABILI localStorage USATE DAL SITO
+────────────────────────────────────────────────────────────────
+
+  beymarket_session       → sessione utente corrente (24h TTL)
+  beymarket_cart          → articoli nel carrello
+  beymarket_theme         → preferenza tema (light/dark)
+  beymarket_demo_users    → utenti Demo Mode (solo sviluppo)
+
+  Per azzerare tutto in fase di test, dalla console del browser:
+    localStorage.clear()
+
+
+────────────────────────────────────────────────────────────────
+  8. CHECKLIST PER IL PASSAGGIO IN PRODUZIONE
+────────────────────────────────────────────────────────────────
+
+  [ ] Crea progetto Supabase
+  [ ] Inserisci SB_URL e SB_KEY in js/auth.js
+  [ ] Crea tabella listings con la SQL del STEP 4
+  [ ] Configura le policy RLS (STEP 5)
+  [ ] Crea tabella profiles + trigger (STEP 5 - sezione 5)
+  [ ] Abilita/personalizza email di conferma registrazione
+  [ ] Popola la tabella listings con i prodotti reali
+  [ ] Verifica che catalog.js usi i listingId reali dal DB
+      (oggi usa dati mock — vedi MOCK_LISTINGS in catalog.js)
+  [ ] Sostituisci API_BASE in catalog.js con l'URL reale
+      oppure usa direttamente il client Supabase
+  [ ] Considera una Edge Function per il checkout (STEP 7)
+  [ ] Rimuovi beymarket_demo_users da localStorage in produzione
+
+================================================================

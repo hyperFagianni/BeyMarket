@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>UX Blade � BeyMarket</title>
       <link rel="icon" type="image/png" href="../assets/logo-piccolo.png" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <link rel="stylesheet" href="../css/style.css" />
   <script src="../js/theme.js" defer></script>
 </head>
@@ -24,6 +26,8 @@
     </nav>
 
     <div class="navbar__actions">
+            <div id="navbar-user"></div>
+
       <button class="theme-toggle" id="theme-toggle" aria-label="Cambia tema">
         <span class="toggle-track">
           <span class="toggle-knob">
@@ -159,7 +163,57 @@
       <p>&copy; 2026 BeyMarket. Tutti i diritti riservati.</p>
     </div>
   </footer>
-  <script src="../js/cart.js"></script>
+  <script src="../js/auth.js"></script>
+    <script src="../js/cart.js"></script>
   <script src="../js/catalog.js"></script>
+
+    <!-- ===== AUTH MODAL ===== -->
+    <div class="auth-overlay" id="auth-overlay" aria-hidden="true">
+      <div class="auth-modal" role="dialog" aria-modal="true">
+        <button class="auth-modal__close" id="auth-close" aria-label="Chiudi">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+        <h2 class="auth-modal__title">Il tuo account</h2>
+        <div class="auth-tabs">
+          <button class="auth-tab auth-tab--active" data-tab="login">Accedi</button>
+          <button class="auth-tab" data-tab="register">Registrati</button>
+        </div>
+        <form class="auth-form" id="form-login">
+          <div class="auth-field">
+            <label class="auth-field__label" for="login-email">Email</label>
+            <input class="auth-field__input" type="email" id="login-email" placeholder="nome@email.com" autocomplete="email" required />
+          </div>
+          <div class="auth-field">
+            <label class="auth-field__label" for="login-password">Password</label>
+            <input class="auth-field__input" type="password" id="login-password" placeholder="min. 6 caratteri" autocomplete="current-password" required />
+          </div>
+          <p class="auth-error" id="login-error"></p>
+          <button type="submit" class="btn btn--primary auth-submit">Accedi</button>
+        </form>
+        <form class="auth-form" id="form-register" hidden>
+          <div class="auth-field">
+            <label class="auth-field__label" for="reg-email">Email</label>
+            <input class="auth-field__input" type="email" id="reg-email" placeholder="nome@email.com" autocomplete="email" required />
+          </div>
+          <div class="auth-field">
+            <label class="auth-field__label" for="reg-password">Password</label>
+            <input class="auth-field__input" type="password" id="reg-password" placeholder="min. 6 caratteri" autocomplete="new-password" required minlength="6" />
+          </div>
+          <div class="auth-field">
+            <label class="auth-field__label" for="reg-confirm">Conferma password</label>
+            <input class="auth-field__input" type="password" id="reg-confirm" placeholder="ripeti la password" autocomplete="new-password" required minlength="6" />
+          </div>
+          <p class="auth-error" id="reg-error"></p>
+          <button type="submit" class="btn btn--primary auth-submit">Crea account</button>
+        </form>
+      </div>
+    </div>
+    <div class="session-banner" id="session-expired-banner" hidden>
+      La sessione &egrave; scaduta.&nbsp;
+      <button onclick="window.BeyAuth?.openModal('login')" class="session-banner__btn">Accedi di nuovo</button>
+    </div>
+
 </body>
 </html>
