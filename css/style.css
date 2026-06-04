@@ -1611,11 +1611,11 @@ h1.category-btn__label::before {
   flex-shrink: 0;
   vertical-align: middle;
 }
-.type-badge svg { width: 17px; height: 17px; display: block; overflow: visible; }
+.type-badge svg { width: 17px; height: 17px; display: block; }
 
-.type-badge--attack  { background: rgba(180,140,28,0.2);  border: 1px solid rgba(180,140,28,0.4); }
-.type-badge--stamina { background: rgba(100,118,142,0.2); border: 1px solid rgba(100,118,142,0.4); }
-.type-badge--defense { background: rgba(88,104,126,0.22); border: 1px solid rgba(88,104,126,0.42); }
+.type-badge--attack  { background: rgba(240,96,144,0.14);  border: 1px solid rgba(240,96,144,0.35); }
+.type-badge--stamina { background: rgba(64,217,200,0.13);  border: 1px solid rgba(64,217,200,0.32); }
+.type-badge--defense { background: rgba(91,127,255,0.14);  border: 1px solid rgba(91,127,255,0.32); }
 .type-badge--none    { color: var(--clr-text-mute); font-size: 0.85rem; width: 24px; height: 24px; border: none; background: none; }
 
 /* --- Pill tipo (nella sidebar filtri) --- */
@@ -1627,16 +1627,16 @@ h1.category-btn__label::before {
   border-radius: 6px;
   flex-shrink: 0;
 }
-.type-pill svg { width: 13px; height: 13px; display: block; overflow: visible; }
+.type-pill svg { width: 13px; height: 13px; display: block; }
 
-.type-pill--attack  { background: rgba(180,140,28,0.22);  border: 1px solid rgba(180,140,28,0.42); }
-.type-pill--stamina { background: rgba(100,118,142,0.22); border: 1px solid rgba(100,118,142,0.42); }
-.type-pill--defense { background: rgba(88,104,126,0.24);  border: 1px solid rgba(88,104,126,0.44); }
+.type-pill--attack  { background: rgba(240,96,144,0.16);  border: 1px solid rgba(240,96,144,0.35); }
+.type-pill--stamina { background: rgba(64,217,200,0.14);  border: 1px solid rgba(64,217,200,0.32); }
+.type-pill--defense { background: rgba(91,127,255,0.16);  border: 1px solid rgba(91,127,255,0.32); }
 
 /* Light theme overrides */
-[data-theme="light"] .type-badge--attack  { background: rgba(180,140,28,0.14); }
-[data-theme="light"] .type-badge--stamina { background: rgba(100,118,142,0.14); }
-[data-theme="light"] .type-badge--defense { background: rgba(88,104,126,0.14); }
-[data-theme="light"] .type-pill--attack   { background: rgba(180,140,28,0.14); }
-[data-theme="light"] .type-pill--stamina  { background: rgba(100,118,142,0.14); }
-[data-theme="light"] .type-pill--defense  { background: rgba(88,104,126,0.14); }
+[data-theme="light"] .type-badge--attack  { background: rgba(240,96,144,0.1); }
+[data-theme="light"] .type-badge--stamina { background: rgba(64,217,200,0.1); }
+[data-theme="light"] .type-badge--defense { background: rgba(91,127,255,0.1); }
+[data-theme="light"] .type-pill--attack   { background: rgba(240,96,144,0.1); }
+[data-theme="light"] .type-pill--stamina  { background: rgba(64,217,200,0.1); }
+[data-theme="light"] .type-pill--defense  { background: rgba(91,127,255,0.1); }

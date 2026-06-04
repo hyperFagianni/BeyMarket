@@ -80,17 +80,17 @@ const TYPE_META = {
   attack:  {
     label: 'Attacco',
     cls:   'type-badge--attack',
-    svg:   '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><line x1="14.5" y1="1.5" x2="9" y2="7" stroke="#8898a8" stroke-width="2.4" stroke-linecap="round"/><line x1="14.5" y1="1.5" x2="9" y2="7" stroke="#ccdae8" stroke-width="0.7" stroke-linecap="round"/><line x1="6.8" y1="6.4" x2="9.6" y2="9.2" stroke="#b89020" stroke-width="1.8" stroke-linecap="round"/><line x1="8.2" y1="8" x2="3.5" y2="12.5" stroke="#5a3018" stroke-width="1.8" stroke-linecap="round"/><circle cx="2.8" cy="13.2" r="1.1" fill="#c89828"/><line x1="1.5" y1="1.5" x2="7" y2="7" stroke="#a8b8c8" stroke-width="2.4" stroke-linecap="round"/><line x1="1.5" y1="1.5" x2="7" y2="7" stroke="#dce8f2" stroke-width="0.7" stroke-linecap="round"/><line x1="6.4" y1="9.2" x2="9.2" y2="6.4" stroke="#c89828" stroke-width="1.8" stroke-linecap="round"/><line x1="7.8" y1="8" x2="12.5" y2="12.5" stroke="#5a3018" stroke-width="1.8" stroke-linecap="round"/><circle cx="13.2" cy="13.2" r="1.1" fill="#c89828"/></svg>',
+    svg:   '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><line x1="2" y1="2" x2="14" y2="14" stroke="#f06090" stroke-width="1.5" stroke-linecap="round"/><line x1="5.5" y1="3.5" x2="3.5" y2="5.5" stroke="#f06090" stroke-width="1.3" stroke-linecap="round"/><line x1="14" y1="2" x2="2" y2="14" stroke="#f06090" stroke-width="1.5" stroke-linecap="round"/><line x1="10.5" y1="3.5" x2="12.5" y2="5.5" stroke="#f06090" stroke-width="1.3" stroke-linecap="round"/></svg>',
   },
   stamina: {
     label: 'Stamina',
     cls:   'type-badge--stamina',
-    svg:   '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M8 2 Q10.5 2 10.5 5.5 L8.5 12.5 Q8 13 8 12.8 Z" fill="#445058"/><path d="M5.5 5.5 Q5.5 2 8 2 Q10.5 2 10.5 5.5 L8.5 12.5 Q8 13 7.5 12.5 Z" fill="#8898a8"/><ellipse cx="7.2" cy="3.2" rx="1.2" ry="0.58" fill="white" opacity="0.22" transform="rotate(-20 7.2 3.2)"/><ellipse cx="8" cy="5.5" rx="3" ry="1.05" fill="#c89828" stroke="#8a6818" stroke-width="0.4"/><ellipse cx="8" cy="5.5" rx="1.9" ry="0.6" fill="#f0c030"/><path d="M6.3 5.1 Q8 4.55 9.7 5.1" stroke="#f8e880" stroke-width="0.55" fill="none" stroke-linecap="round"/><path d="M7.5 12.5 L8 15 L8.5 12.5" fill="#c89828"/></svg>',
+    svg:   '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M8 2.5 A5.5 5.5 0 1 1 2.5 8" fill="none" stroke="#40d9c8" stroke-width="2" stroke-linecap="round"/><path d="M1 6.5 L2.5 8 L4 6.5" fill="none" stroke="#40d9c8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   },
   defense: {
     label: 'Difesa',
     cls:   'type-badge--defense',
-    svg:   '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M8 1.5 L13.5 3.5 V8 C13.5 11.8 8 14.8 8 14.8 Z" fill="#5a6878"/><path d="M8 1.5 L2.5 3.5 V8 C2.5 11.8 8 14.8 8 14.8 Z" fill="#8898a8"/><path d="M8 1.5 L13.5 3.5 V8 C13.5 11.8 8 14.8 8 14.8 C8 14.8 2.5 11.8 2.5 8 V3.5 Z" fill="none" stroke="#c89828" stroke-width="1.4" stroke-linejoin="round"/><line x1="8" y1="3.8" x2="8" y2="12.5" stroke="#384048" stroke-width="1.8" stroke-linecap="round"/><line x1="8" y1="3.8" x2="8" y2="12.5" stroke="#98a8b4" stroke-width="0.65" stroke-linecap="round"/><line x1="4.2" y1="7.5" x2="11.8" y2="7.5" stroke="#384048" stroke-width="1.8" stroke-linecap="round"/><line x1="4.2" y1="7.5" x2="11.8" y2="7.5" stroke="#98a8b4" stroke-width="0.65" stroke-linecap="round"/><circle cx="8" cy="7.5" r="1.6" fill="#c89828" stroke="#8a6010" stroke-width="0.45"/><circle cx="8" cy="7.5" r="0.75" fill="#f0d050"/></svg>',
+    svg:   '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M8 1.5 L13 3.5 V9 C13 12.5 8 14.5 8 14.5 C8 14.5 3 12.5 3 9 V3.5 Z" fill="rgba(91,127,255,0.18)" stroke="#7090ff" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 5 V13 M5.5 9 H10.5" stroke="rgba(160,180,255,0.55)" stroke-width="1.1" stroke-linecap="round"/></svg>',
   },
 };
 
