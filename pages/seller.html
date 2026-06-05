@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profilo Venditore – BeyMarket</title>
+  <link rel="icon" type="image/png" href="../assets/logo-piccolo.png" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="../css/style.css" />
+  <script src="../js/theme.js" defer></script>
+</head>
+<body>
+
+  <!-- ===== HEADER / NAVBAR ===== -->
+  <header class="navbar">
+    <a href="../home.html" class="navbar__logo">
+      <img src="../assets/logo.png" alt="BeyMarket Logo" />
+    </a>
+    <nav class="navbar__links">
+      <a href="../home.html" class="nav-link">Home</a>
+      <a href="bit.html" class="nav-link">Bit</a>
+      <a href="accessories.html" class="nav-link">Accessori</a>
+      <a href="launcher.html" class="nav-link">Launcher</a>
+    </nav>
+    <div class="navbar__actions">
+      <div id="navbar-user"></div>
+      <button class="theme-toggle" id="theme-toggle" aria-label="Cambia tema">
+        <span class="toggle-track">
+          <span class="toggle-knob">
+            <svg class="knob-icon knob-icon--sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+              <circle cx="8" cy="8" r="3" fill="currentColor"/>
+              <line x1="8" y1="1" x2="8" y2="3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="8" y1="13" x2="8" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="2.93" y1="2.93" x2="4.34" y2="4.34" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="11.66" y1="11.66" x2="13.07" y2="13.07" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="1" y1="8" x2="3" y2="8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="13" y1="8" x2="15" y2="8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <svg class="knob-icon knob-icon--moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+              <path d="M14 10.5A6 6 0 1 1 7.5 2a4.5 4.5 0 0 0 6.5 8.5z" fill="currentColor"/>
+            </svg>
+          </span>
+        </span>
+      </button>
+      <a href="inbox.html" class="navbar__msg" id="navbar-msg-icon" aria-label="Messaggi" style="display:none">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+          <polyline points="22,6 12,13 2,6"/>
+        </svg>
+        <span class="cart-badge msg-badge" id="msg-badge" style="display:none">0</span>
+      </a>
+      <a href="cart.html" class="navbar__cart" aria-label="Carrello">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="21" r="1"></circle>
+          <circle cx="20" cy="21" r="1"></circle>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+        </svg>
+        <span class="cart-badge" id="cart-count">0</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- ===== PROFILO VENDITORE ===== -->
+  <main class="container seller-page">
+
+    <!-- Intestazione profilo -->
+    <div class="seller-header glass">
+      <div class="seller-avatar" id="seller-avatar">?</div>
+      <div class="seller-info">
+        <h1 class="seller-name" id="seller-name">Caricamento…</h1>
+        <p class="seller-email" id="seller-email"></p>
+        <p class="seller-since" id="seller-since"></p>
+      </div>
+      <div class="seller-actions" id="seller-actions"></div>
+    </div>
+
+    <!-- Annunci del venditore -->
+    <div class="seller-listings-section">
+      <h2 class="section-title">Annunci in vendita</h2>
+      <div class="catalog-table-wrap">
+        <table class="catalog-table" id="seller-table">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Tipo</th>
+              <th>Condizione</th>
+              <th>Foto</th>
+              <th>Qt. disp.</th>
+              <th>Quantità</th>
+              <th>Prezzo</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="seller-body">
+            <tr class="catalog-loading">
+              <td colspan="8">
+                <div class="loading-inner">
+                  <span class="loading-spinner"></span>
+                  Caricamento annunci…
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="catalog-empty" id="seller-empty" style="display:none;">Questo venditore non ha annunci attivi.</p>
+    </div>
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <div class="container footer__grid">
+      <div class="footer__col">
+        <a href="../home.html" class="footer__logo">
+          <img src="../assets/logo.png" alt="BeyMarket" />
+        </a>
+        <p>Il mercato italiano dedicato ai pezzi Beyblade X.<br />Compra, vendi, sfida.</p>
+      </div>
+      <div class="footer__col">
+        <h4>Link Utili</h4>
+        <ul>
+          <li><a href="../home.html">Home</a></li>
+          <li><a href="accessories.html">Accessori</a></li>
+          <li><a href="launcher.html">Launcher</a></li>
+          <li><a href="bit.html">Bit</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4>Contatti</h4>
+        <ul>
+          <li><a href="mailto:info@beymarket.it">info@beymarket.it</a></li>
+          <li><a href="#">Instagram</a></li>
+          <li><a href="#">Discord</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4>Informazioni Legali</h4>
+        <ul>
+          <li><a href="../legal-information/termini-di-servizio.html">Termini di servizio</a></li>
+          <li><a href="../legal-information/privacy-policy.html">Privacy Policy</a></li>
+          <li><a href="../legal-information/cookie-policy.html">Cookie Policy</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <p>&copy; 2026 BeyMarket. Tutti i diritti riservati.</p>
+    </div>
+  </footer>
+
+  <script src="../js/auth.js"></script>
+  <script src="../js/cart.js"></script>
+  <script src="../js/messages.js"></script>
+
+  <!-- ===== AUTH MODAL ===== -->
+  <div class="auth-overlay" id="auth-overlay" aria-hidden="true">
+    <div class="auth-modal" role="dialog" aria-modal="true">
+      <button class="auth-modal__close" id="auth-close" aria-label="Chiudi">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+      <h2 class="auth-modal__title">Il tuo account</h2>
+      <div class="auth-tabs">
+        <button class="auth-tab auth-tab--active" data-tab="login">Accedi</button>
+        <button class="auth-tab" data-tab="register">Registrati</button>
+      </div>
+      <form class="auth-form" id="form-login">
+        <div class="auth-field">
+          <label class="auth-field__label" for="login-email">Email</label>
+          <input class="auth-field__input" type="email" id="login-email" placeholder="nome@email.com" autocomplete="email" required />
+        </div>
+        <div class="auth-field">
+          <label class="auth-field__label" for="login-password">Password</label>
+          <input class="auth-field__input" type="password" id="login-password" placeholder="min. 6 caratteri" autocomplete="current-password" required />
+        </div>
+        <p class="auth-error" id="login-error"></p>
+        <button type="submit" class="btn btn--primary auth-submit">Accedi</button>
+      </form>
+      <form class="auth-form" id="form-register" hidden>
+        <div class="auth-field">
+          <label class="auth-field__label" for="reg-email">Email</label>
+          <input class="auth-field__input" type="email" id="reg-email" placeholder="nome@email.com" autocomplete="email" required />
+        </div>
+        <div class="auth-field">
+          <label class="auth-field__label" for="reg-password">Password</label>
+          <input class="auth-field__input" type="password" id="reg-password" placeholder="min. 6 caratteri" autocomplete="new-password" required minlength="6" />
+        </div>
+        <div class="auth-field">
+          <label class="auth-field__label" for="reg-confirm">Conferma Password</label>
+          <input class="auth-field__input" type="password" id="reg-confirm" placeholder="ripeti la password" autocomplete="new-password" required minlength="6" />
+        </div>
+        <p class="auth-error" id="reg-error"></p>
+        <button type="submit" class="btn btn--primary auth-submit">Crea account</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+  // ─── Legge i parametri URL ───────────────────────────────
+  const params     = new URLSearchParams(location.search);
+  const sellerId   = params.get('id');
+  const sellerEmail= params.get('email') || '';
+  const sellerNick = sellerEmail ? sellerEmail.split('@')[0] : 'Venditore';
+
+  // ─── Popola header profilo ───────────────────────────────
+  document.addEventListener('DOMContentLoaded', function () {
+    const avatarEl  = document.getElementById('seller-avatar');
+    const nameEl    = document.getElementById('seller-name');
+    const emailEl   = document.getElementById('seller-email');
+    const sinceEl   = document.getElementById('seller-since');
+    const actionsEl = document.getElementById('seller-actions');
+
+    if (!sellerId) {
+      nameEl.textContent = 'Venditore non trovato';
+      return;
+    }
+
+    avatarEl.textContent = sellerNick.charAt(0).toUpperCase();
+    nameEl.textContent   = sellerNick;
+    emailEl.textContent  = sellerEmail;
+    sinceEl.textContent  = 'Membro di BeyMarket';
+
+    // Pulsante Contatta (visibile solo se loggato e non è il proprio profilo)
+    function renderActions() {
+      const me = window.BeyAuth?.getUser();
+      actionsEl.innerHTML = '';
+      if (!me) {
+        const btn = document.createElement('button');
+        btn.className   = 'btn btn--primary';
+        btn.textContent = 'Accedi per contattare';
+        btn.addEventListener('click', () => window.BeyAuth?.openModal('login'));
+        actionsEl.appendChild(btn);
+        return;
+      }
+      if (me.id === sellerId) {
+        const note = document.createElement('span');
+        note.className   = 'seller-own-badge';
+        note.textContent = 'Questo è il tuo profilo';
+        actionsEl.appendChild(note);
+        return;
+      }
+      const btn = document.createElement('a');
+      btn.className = 'btn btn--primary';
+      btn.href      = 'chat.html?with=' + encodeURIComponent(sellerId) + '&email=' + encodeURIComponent(sellerEmail);
+      btn.innerHTML =
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+        '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>' +
+        ' Contatta';
+      actionsEl.appendChild(btn);
+    }
+
+    renderActions();
+    document.addEventListener('beymarket:auth-change', renderActions);
+
+    // ─── Carica annunci del venditore ─────────────────────
+    loadSellerListings();
+  });
+
+  // ─── Dati mock arricchiti con sellerId demo ─────────────
+  const MOCK_LISTINGS = [
+    { id:1,  category:'bx-blade',  name:'Dran Sword',       bey:'Dranzer Spiral',  color:'Rosso',    type:'attack',  condition:'NM', qty:2, price:4.50,  sellerId:'demo-seller-1', sellerEmail:'mario@example.it',   photo:'https://placehold.co/600x400/0d1117/5b7fff?text=Dran+Sword' },
+    { id:2,  category:'bx-blade',  name:'Hells Scythe',     bey:'Hells Hammer',    color:'Nero',     type:'attack',  condition:'GD', qty:1, price:6.00,  sellerId:'demo-seller-1', sellerEmail:'mario@example.it',   photo:'https://placehold.co/600x400/0d1117/5b7fff?text=Hells+Scythe' },
+    { id:3,  category:'bx-blade',  name:'Cobalt Dragoon',   bey:'Cobalt Drake',    color:'Blu',      type:'defense', condition:'MN', qty:3, price:8.00,  sellerId:'demo-seller-2', sellerEmail:'luca@example.it',    photo:'https://placehold.co/600x400/0d1117/5b7fff?text=Cobalt+Dragoon' },
+    { id:4,  category:'bx-blade',  name:'Wizard Arrow',     bey:'Wizard Rod',      color:'Viola',    type:'stamina', condition:'LP', qty:1, price:3.50,  sellerId:'demo-seller-2', sellerEmail:'luca@example.it',    photo:'https://placehold.co/600x400/0d1117/5b7fff?text=Wizard+Arrow' },
+    { id:5,  category:'bx-blade',  name:'Leon Claw',        bey:'Leon Crest',      color:'Arancio',  type:'attack',  condition:'PO', qty:1, price:1.80,  sellerId:'demo-seller-1', sellerEmail:'mario@example.it',   photo:'https://placehold.co/600x400/0d1117/5b7fff?text=Leon+Claw' },
+    { id:6,  category:'ux-blade',  name:'Shark Edge',       bey:'Aquila Almight',  color:'Grigio',   type:'defense', condition:'LP', qty:1, price:3.50,  sellerId:'demo-seller-3', sellerEmail:'giulia@example.it',  photo:'https://placehold.co/600x400/0d1117/8a5bff?text=Shark+Edge' },
+    { id:22, category:'bit',       name:'Point',            bey:'Universale',      color:'Tras.',    type:'stamina', condition:'NM', qty:5, price:1.50,  sellerId:'demo-seller-1', sellerEmail:'mario@example.it',   photo:'https://placehold.co/600x400/0d1117/3be0a0?text=Point' },
+    { id:23, category:'bit',       name:'Rush',             bey:'Universale',      color:'Rosso',    type:'attack',  condition:'GD', qty:2, price:2.00,  sellerId:'demo-seller-2', sellerEmail:'luca@example.it',    photo:'https://placehold.co/600x400/0d1117/3be0a0?text=Rush' },
+    { id:26, category:'launcher',  name:'String Launcher L',bey:'N/A',             color:'Nero',     type:null,      condition:'GD', qty:1, price:7.00,  sellerId:'demo-seller-3', sellerEmail:'giulia@example.it',  photo:'https://placehold.co/600x400/0d1117/ff6b6b?text=String+L' },
+    { id:29, category:'accessories',name:'Stadium BX-15',   bey:'N/A',             color:'Bianco',   type:null,      condition:'GD', qty:1, price:15.00, sellerId:'demo-seller-2', sellerEmail:'luca@example.it',    photo:'https://placehold.co/600x400/0d1117/5b7fff?text=Stadium' },
+  ];
+
+  const TYPE_META = {
+    attack:  { label:'Attacco',  cls:'type-badge--attack',  svg:'<svg viewBox="0 0 16 16"><line x1="2" y1="2" x2="14" y2="14" stroke="#f06090" stroke-width="1.5" stroke-linecap="round"/><line x1="5.5" y1="3.5" x2="3.5" y2="5.5" stroke="#f06090" stroke-width="1.3" stroke-linecap="round"/><line x1="14" y1="2" x2="2" y2="14" stroke="#f06090" stroke-width="1.5" stroke-linecap="round"/><line x1="10.5" y1="3.5" x2="12.5" y2="5.5" stroke="#f06090" stroke-width="1.3" stroke-linecap="round"/></svg>' },
+    stamina: { label:'Stamina',  cls:'type-badge--stamina', svg:'<svg viewBox="0 0 16 16"><path d="M8 2.5 A5.5 5.5 0 1 1 2.5 8" fill="none" stroke="#40d9c8" stroke-width="2" stroke-linecap="round"/><path d="M1 6.5 L2.5 8 L4 6.5" fill="none" stroke="#40d9c8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
+    defense: { label:'Difesa',   cls:'type-badge--defense', svg:'<svg viewBox="0 0 16 16"><path d="M8 1.5 L13 3.5 V9 C13 12.5 8 14.5 8 14.5 C8 14.5 3 12.5 3 9 V3.5 Z" fill="rgba(91,127,255,0.18)" stroke="#7090ff" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 5 V13 M5.5 9 H10.5" stroke="rgba(160,180,255,0.55)" stroke-width="1.1" stroke-linecap="round"/></svg>' },
+  };
+  const COND_META = { MN:'Near mint / perfetto', NM:'Near mint', GD:'Good / buono', LP:'Lightly played', PO:'Poor / molto usato' };
+
+  function typeCell(type) {
+    if (!type || !TYPE_META[type]) return '<span class="type-badge type-badge--none">&#8212;</span>';
+    const m = TYPE_META[type];
+    return '<span class="type-badge ' + m.cls + '" title="' + m.label + '">' + m.svg + '</span>';
+  }
+  function condBadge(cond) {
+    return '<span class="cond-badge cond-' + (cond||'xx').toLowerCase() + '" title="' + (COND_META[cond]||cond) + '">' + (cond||'?') + '</span>';
+  }
+  function photoCell(url) {
+    const icon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>';
+    if (!url) return '<span class="photo-icon photo-icon--none">' + icon + '</span>';
+    return '<a class="photo-icon" href="' + url + '" target="_blank" rel="noopener noreferrer">' + icon + '</a>';
+  }
+  function qtyCell(qty, id) {
+    if (qty <= 1) return '<span class="qty-static">1</span>';
+    const opts = Array.from({length: qty}, (_, i) => '<option value="' + (i+1) + '">' + (i+1) + '</option>').join('');
+    return '<select class="qty-select" id="qty-' + id + '" aria-label="Quantità">' + opts + '</select>';
+  }
+
+  function renderSellerRow(item) {
+    const price = parseFloat(item.price || 0).toFixed(2);
+    const beyLabel = item.bey && item.bey !== 'N/A' ? '<span class="listing-bey">' + item.bey + '</span>' : '';
+    return '<tr data-id="' + item.id + '" data-name="' + item.name + '" data-price="' + (item.price||0) + '" data-img="' + (item.photo||'') + '">' +
+      '<td class="col-name"><span class="listing-name">' + item.name + '</span>' + beyLabel + '</td>' +
+      '<td class="col-type">' + typeCell(item.type) + '</td>' +
+      '<td class="col-cond">' + condBadge(item.condition) + '</td>' +
+      '<td class="col-photo">' + photoCell(item.photo) + '</td>' +
+      '<td class="col-qty"><span class="qty-avail">' + item.qty + '</span></td>' +
+      '<td class="col-sel">' + qtyCell(item.qty, item.id) + '</td>' +
+      '<td class="col-price"><span class="listing-price">€ ' + price + '</span></td>' +
+      '<td class="col-action"><button class="btn-cart-row" data-id="' + item.id + '" aria-label="Aggiungi al carrello" title="Aggiungi al carrello">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>' +
+      '</button></td></tr>';
+  }
+
+  function loadSellerListings() {
+    const tbody  = document.getElementById('seller-body');
+    const empty  = document.getElementById('seller-empty');
+    if (!sellerId) { if (tbody) tbody.innerHTML = ''; if (empty) empty.style.display = ''; return; }
+
+    const items = MOCK_LISTINGS.filter(l => l.sellerId === sellerId);
+    if (!tbody) return;
+    if (!items.length) {
+      tbody.innerHTML = '';
+      if (empty) empty.style.display = '';
+      return;
+    }
+    tbody.innerHTML = items.map(renderSellerRow).join('');
+    if (empty) empty.style.display = 'none';
+
+    // Bind carrello
+    tbody.addEventListener('click', function (e) {
+      const btn = e.target.closest('.btn-cart-row');
+      if (!btn) return;
+      const row   = btn.closest('tr');
+      const id    = row.dataset.id;
+      const name  = row.dataset.name;
+      const price = parseFloat(row.dataset.price);
+      const img   = row.dataset.img;
+      const qty   = parseInt(document.getElementById('qty-' + id)?.value || '1');
+      if (!window.BeyAuth?.isAuthenticated()) {
+        btn.classList.add('btn-cart-row--locked');
+        btn.disabled = true;
+        window.BeyAuth?.openModal('login');
+        return;
+      }
+      if (typeof addToCart === 'function') addToCart(name, price, img, id, qty);
+      btn.classList.add('btn-cart-row--added');
+      setTimeout(() => btn.classList.remove('btn-cart-row--added'), 900);
+    });
+  }
+  </script>
+</body>
+</html>

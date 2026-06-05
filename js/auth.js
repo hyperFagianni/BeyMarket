@@ -135,6 +135,15 @@ function updateNavbarUser() {
   if (!container) return;
   const session = getLocalSession();
 
+  // Icona messaggi: visibile solo se loggato
+  const msgIcon = document.getElementById('navbar-msg-icon');
+  if (msgIcon) {
+    msgIcon.style.display = session ? 'flex' : 'none';
+    if (session && window.BeyMessages) {
+      window.BeyMessages.updateBadge();
+    }
+  }
+
   if (session) {
     const nick = session.email.split('@')[0];
     container.innerHTML =

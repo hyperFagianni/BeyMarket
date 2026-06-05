@@ -9,47 +9,47 @@ const API_BASE = 'https://api.beymarket.it/v1';
 // ---- Dati di esempio (usati quando l'API non è disponibile) ----
 const MOCK_LISTINGS = [
   // BX Blade
-  { id:  1, category: 'bx-blade',              name: 'Dran Sword',           bey: 'Dranzer Spiral',   color: 'Rosso',       type: 'attack',  condition: 'NM', qty: 2, price: 4.50,  photo: 'https://placehold.co/600x400/0d1117/5b7fff?text=Dran+Sword' },
-  { id:  2, category: 'bx-blade',              name: 'Hells Scythe',         bey: 'Hells Hammer',     color: 'Nero',        type: 'attack',  condition: 'GD', qty: 1, price: 6.00,  photo: 'https://placehold.co/600x400/0d1117/5b7fff?text=Hells+Scythe' },
-  { id:  3, category: 'bx-blade',              name: 'Cobalt Dragoon',       bey: 'Cobalt Drake',     color: 'Blu',         type: 'defense', condition: 'MN', qty: 3, price: 8.00,  photo: 'https://placehold.co/600x400/0d1117/5b7fff?text=Cobalt+Dragoon' },
-  { id:  4, category: 'bx-blade',              name: 'Wizard Arrow',         bey: 'Wizard Rod',       color: 'Viola',       type: 'stamina', condition: 'LP', qty: 1, price: 3.50,  photo: 'https://placehold.co/600x400/0d1117/5b7fff?text=Wizard+Arrow' },
-  { id:  5, category: 'bx-blade',              name: 'Leon Claw',            bey: 'Leon Crest',       color: 'Arancio',     type: 'attack',  condition: 'PO', qty: 1, price: 1.80,  photo: 'https://placehold.co/600x400/0d1117/5b7fff?text=Leon+Claw' },
+  { id:  1, category: 'bx-blade',              name: 'Dran Sword',           bey: 'Dranzer Spiral',   color: 'Rosso',       type: 'attack',  condition: 'NM', qty: 2, price: 4.50,  sellerId: 'demo-seller-1', sellerEmail: 'mario@example.it',   photo: 'https://placehold.co/600x400/0d1117/5b7fff?text=Dran+Sword' },
+  { id:  2, category: 'bx-blade',              name: 'Hells Scythe',         bey: 'Hells Hammer',     color: 'Nero',        type: 'attack',  condition: 'GD', qty: 1, price: 6.00,  sellerId: 'demo-seller-1', sellerEmail: 'mario@example.it',   photo: 'https://placehold.co/600x400/0d1117/5b7fff?text=Hells+Scythe' },
+  { id:  3, category: 'bx-blade',              name: 'Cobalt Dragoon',       bey: 'Cobalt Drake',     color: 'Blu',         type: 'defense', condition: 'MN', qty: 3, price: 8.00,  sellerId: 'demo-seller-2', sellerEmail: 'luca@example.it',    photo: 'https://placehold.co/600x400/0d1117/5b7fff?text=Cobalt+Dragoon' },
+  { id:  4, category: 'bx-blade',              name: 'Wizard Arrow',         bey: 'Wizard Rod',       color: 'Viola',       type: 'stamina', condition: 'LP', qty: 1, price: 3.50,  sellerId: 'demo-seller-2', sellerEmail: 'luca@example.it',    photo: 'https://placehold.co/600x400/0d1117/5b7fff?text=Wizard+Arrow' },
+  { id:  5, category: 'bx-blade',              name: 'Leon Claw',            bey: 'Leon Crest',       color: 'Arancio',     type: 'attack',  condition: 'PO', qty: 1, price: 1.80,  sellerId: 'demo-seller-1', sellerEmail: 'mario@example.it',   photo: 'https://placehold.co/600x400/0d1117/5b7fff?text=Leon+Claw' },
   // UX Blade
-  { id:  6, category: 'ux-blade',              name: 'Shark Edge',           bey: 'Aquila Almight',   color: 'Grigio',      type: 'defense', condition: 'LP', qty: 1, price: 3.50,  photo: 'https://placehold.co/600x400/0d1117/8a5bff?text=Shark+Edge' },
-  { id:  7, category: 'ux-blade',              name: 'Phoenix Wing',         bey: 'Phoénix Rudder',   color: 'Arancio',     type: 'stamina', condition: 'NM', qty: 2, price: 5.00,  photo: 'https://placehold.co/600x400/0d1117/8a5bff?text=Phoenix+Wing' },
-  { id:  8, category: 'ux-blade',              name: 'Unicorn Stinger',      bey: 'Unicorn Sting',    color: 'Bianco',      type: 'stamina', condition: 'MN', qty: 1, price: 7.50,  photo: 'https://placehold.co/600x400/0d1117/8a5bff?text=Unicorn+Stinger' },
+  { id:  6, category: 'ux-blade',              name: 'Shark Edge',           bey: 'Aquila Almight',   color: 'Grigio',      type: 'defense', condition: 'LP', qty: 1, price: 3.50,  sellerId: 'demo-seller-3', sellerEmail: 'giulia@example.it',  photo: 'https://placehold.co/600x400/0d1117/8a5bff?text=Shark+Edge' },
+  { id:  7, category: 'ux-blade',              name: 'Phoenix Wing',         bey: 'Phoénix Rudder',   color: 'Arancio',     type: 'stamina', condition: 'NM', qty: 2, price: 5.00,  sellerId: 'demo-seller-3', sellerEmail: 'giulia@example.it',  photo: 'https://placehold.co/600x400/0d1117/8a5bff?text=Phoenix+Wing' },
+  { id:  8, category: 'ux-blade',              name: 'Unicorn Stinger',      bey: 'Unicorn Sting',    color: 'Bianco',      type: 'stamina', condition: 'MN', qty: 1, price: 7.50,  sellerId: 'demo-seller-2', sellerEmail: 'luca@example.it',    photo: 'https://placehold.co/600x400/0d1117/8a5bff?text=Unicorn+Stinger' },
   // CX Assist Blade
-  { id:  9, category: 'cx-assist-blade',       name: 'Assist Blade S',       bey: 'Cobra Assault',    color: 'Rosso',       type: null,      condition: 'NM', qty: 2, price: 3.00,  photo: 'https://placehold.co/600x400/0d1117/5b7fff?text=Assist+S' },
-  { id: 10, category: 'cx-assist-blade',       name: 'Assist Blade D',       bey: 'Drake Wing',       color: 'Blu',         type: 'attack',  condition: 'GD', qty: 1, price: 2.50,  photo: 'https://placehold.co/600x400/0d1117/5b7fff?text=Assist+D' },
+  { id:  9, category: 'cx-assist-blade',       name: 'Assist Blade S',       bey: 'Cobra Assault',    color: 'Rosso',       type: null,      condition: 'NM', qty: 2, price: 3.00,  sellerId: 'demo-seller-1', sellerEmail: 'mario@example.it',   photo: 'https://placehold.co/600x400/0d1117/5b7fff?text=Assist+S' },
+  { id: 10, category: 'cx-assist-blade',       name: 'Assist Blade D',       bey: 'Drake Wing',       color: 'Blu',         type: 'attack',  condition: 'GD', qty: 1, price: 2.50,  sellerId: 'demo-seller-2', sellerEmail: 'luca@example.it',    photo: 'https://placehold.co/600x400/0d1117/5b7fff?text=Assist+D' },
   // CX Lock Chip
-  { id: 11, category: 'cx-lock-chip',          name: 'Lock Chip Type A',     bey: 'Universale',       color: 'Grigio',      type: null,      condition: 'MN', qty: 3, price: 1.20,  photo: 'https://placehold.co/600x400/0d1117/5b7fff?text=Lock+A' },
-  { id: 12, category: 'cx-lock-chip',          name: 'Lock Chip Type B',     bey: 'Universale',       color: 'Nero',        type: null,      condition: 'NM', qty: 1, price: 1.00,  photo: 'https://placehold.co/600x400/0d1117/5b7fff?text=Lock+B' },
+  { id: 11, category: 'cx-lock-chip',          name: 'Lock Chip Type A',     bey: 'Universale',       color: 'Grigio',      type: null,      condition: 'MN', qty: 3, price: 1.20,  sellerId: 'demo-seller-3', sellerEmail: 'giulia@example.it',  photo: 'https://placehold.co/600x400/0d1117/5b7fff?text=Lock+A' },
+  { id: 12, category: 'cx-lock-chip',          name: 'Lock Chip Type B',     bey: 'Universale',       color: 'Nero',        type: null,      condition: 'NM', qty: 1, price: 1.00,  sellerId: 'demo-seller-1', sellerEmail: 'mario@example.it',   photo: 'https://placehold.co/600x400/0d1117/5b7fff?text=Lock+B' },
   // CX Main Blade
-  { id: 13, category: 'cx-main-blade',         name: 'Main Blade V1',        bey: 'Viper Tail',       color: 'Viola',       type: 'attack',  condition: 'GD', qty: 1, price: 5.50,  photo: 'https://placehold.co/600x400/0d1117/8a5bff?text=Main+V1' },
-  { id: 14, category: 'cx-main-blade',         name: 'Main Blade Z',         bey: 'Zero Storm',       color: 'Bianco',      type: 'defense', condition: 'NM', qty: 2, price: 6.00,  photo: 'https://placehold.co/600x400/0d1117/8a5bff?text=Main+Z' },
+  { id: 13, category: 'cx-main-blade',         name: 'Main Blade V1',        bey: 'Viper Tail',       color: 'Viola',       type: 'attack',  condition: 'GD', qty: 1, price: 5.50,  sellerId: 'demo-seller-2', sellerEmail: 'luca@example.it',    photo: 'https://placehold.co/600x400/0d1117/8a5bff?text=Main+V1' },
+  { id: 14, category: 'cx-main-blade',         name: 'Main Blade Z',         bey: 'Zero Storm',       color: 'Bianco',      type: 'defense', condition: 'NM', qty: 2, price: 6.00,  sellerId: 'demo-seller-3', sellerEmail: 'giulia@example.it',  photo: 'https://placehold.co/600x400/0d1117/8a5bff?text=Main+Z' },
   // CX Expand Metal Blade
-  { id: 15, category: 'cx-expand-metal-blade', name: 'Metal Blade M3',       bey: 'Universale',       color: 'Argento',     type: 'defense', condition: 'NM', qty: 2, price: 6.00,  photo: 'https://placehold.co/600x400/0d1117/5b7fff?text=Metal+M3' },
-  { id: 16, category: 'cx-expand-metal-blade', name: 'Metal Blade X',        bey: 'Universale',       color: 'Nero',        type: 'attack',  condition: 'GD', qty: 1, price: 4.50,  photo: 'https://placehold.co/600x400/0d1117/5b7fff?text=Metal+X' },
+  { id: 15, category: 'cx-expand-metal-blade', name: 'Metal Blade M3',       bey: 'Universale',       color: 'Argento',     type: 'defense', condition: 'NM', qty: 2, price: 6.00,  sellerId: 'demo-seller-1', sellerEmail: 'mario@example.it',   photo: 'https://placehold.co/600x400/0d1117/5b7fff?text=Metal+M3' },
+  { id: 16, category: 'cx-expand-metal-blade', name: 'Metal Blade X',        bey: 'Universale',       color: 'Nero',        type: 'attack',  condition: 'GD', qty: 1, price: 4.50,  sellerId: 'demo-seller-2', sellerEmail: 'luca@example.it',    photo: 'https://placehold.co/600x400/0d1117/5b7fff?text=Metal+X' },
   // CX Expand Over Blade
-  { id: 17, category: 'cx-expand-over-blade',  name: 'Over Blade O2',        bey: 'Universale',       color: 'Verde',       type: 'stamina', condition: 'LP', qty: 1, price: 4.00,  photo: 'https://placehold.co/600x400/0d1117/3be0a0?text=Over+O2' },
+  { id: 17, category: 'cx-expand-over-blade',  name: 'Over Blade O2',        bey: 'Universale',       color: 'Verde',       type: 'stamina', condition: 'LP', qty: 1, price: 4.00,  sellerId: 'demo-seller-3', sellerEmail: 'giulia@example.it',  photo: 'https://placehold.co/600x400/0d1117/3be0a0?text=Over+O2' },
   // Ratchet
-  { id: 18, category: 'ratchet',               name: 'Ratchet 3-60',         bey: 'Universale',       color: 'Verde',       type: null,      condition: 'MN', qty: 4, price: 2.50,  photo: 'https://placehold.co/600x400/0d1117/f7c948?text=3-60' },
-  { id: 19, category: 'ratchet',               name: 'Ratchet 4-70',         bey: 'Universale',       color: 'Viola',       type: null,      condition: 'LP', qty: 1, price: 1.80,  photo: 'https://placehold.co/600x400/0d1117/f7c948?text=4-70' },
-  { id: 20, category: 'ratchet',               name: 'Ratchet 5-80',         bey: 'Universale',       color: 'Arancio',     type: null,      condition: 'GD', qty: 2, price: 2.00,  photo: 'https://placehold.co/600x400/0d1117/f7c948?text=5-80' },
-  { id: 21, category: 'ratchet',               name: 'Ratchet 9-60',         bey: 'Universale',       color: 'Rosso',       type: null,      condition: 'NM', qty: 3, price: 2.20,  photo: 'https://placehold.co/600x400/0d1117/f7c948?text=9-60' },
+  { id: 18, category: 'ratchet',               name: 'Ratchet 3-60',         bey: 'Universale',       color: 'Verde',       type: null,      condition: 'MN', qty: 4, price: 2.50,  sellerId: 'demo-seller-1', sellerEmail: 'mario@example.it',   photo: 'https://placehold.co/600x400/0d1117/f7c948?text=3-60' },
+  { id: 19, category: 'ratchet',               name: 'Ratchet 4-70',         bey: 'Universale',       color: 'Viola',       type: null,      condition: 'LP', qty: 1, price: 1.80,  sellerId: 'demo-seller-2', sellerEmail: 'luca@example.it',    photo: 'https://placehold.co/600x400/0d1117/f7c948?text=4-70' },
+  { id: 20, category: 'ratchet',               name: 'Ratchet 5-80',         bey: 'Universale',       color: 'Arancio',     type: null,      condition: 'GD', qty: 2, price: 2.00,  sellerId: 'demo-seller-3', sellerEmail: 'giulia@example.it',  photo: 'https://placehold.co/600x400/0d1117/f7c948?text=5-80' },
+  { id: 21, category: 'ratchet',               name: 'Ratchet 9-60',         bey: 'Universale',       color: 'Rosso',       type: null,      condition: 'NM', qty: 3, price: 2.20,  sellerId: 'demo-seller-1', sellerEmail: 'mario@example.it',   photo: 'https://placehold.co/600x400/0d1117/f7c948?text=9-60' },
   // Bit
-  { id: 22, category: 'bit',                   name: 'Point',                bey: 'Universale',       color: 'Trasparente', type: 'stamina', condition: 'NM', qty: 5, price: 1.50,  photo: 'https://placehold.co/600x400/0d1117/3be0a0?text=Point' },
-  { id: 23, category: 'bit',                   name: 'Rush',                 bey: 'Universale',       color: 'Rosso',       type: 'attack',  condition: 'GD', qty: 2, price: 2.00,  photo: 'https://placehold.co/600x400/0d1117/3be0a0?text=Rush' },
-  { id: 24, category: 'bit',                   name: 'Needle',               bey: 'Universale',       color: 'Bianco',      type: 'stamina', condition: 'MN', qty: 3, price: 2.20,  photo: 'https://placehold.co/600x400/0d1117/3be0a0?text=Needle' },
-  { id: 25, category: 'bit',                   name: 'Kick',                 bey: 'Universale',       color: 'Giallo',      type: 'attack',  condition: 'LP', qty: 1, price: 1.80,  photo: 'https://placehold.co/600x400/0d1117/3be0a0?text=Kick' },
+  { id: 22, category: 'bit',                   name: 'Point',                bey: 'Universale',       color: 'Trasparente', type: 'stamina', condition: 'NM', qty: 5, price: 1.50,  sellerId: 'demo-seller-2', sellerEmail: 'luca@example.it',    photo: 'https://placehold.co/600x400/0d1117/3be0a0?text=Point' },
+  { id: 23, category: 'bit',                   name: 'Rush',                 bey: 'Universale',       color: 'Rosso',       type: 'attack',  condition: 'GD', qty: 2, price: 2.00,  sellerId: 'demo-seller-3', sellerEmail: 'giulia@example.it',  photo: 'https://placehold.co/600x400/0d1117/3be0a0?text=Rush' },
+  { id: 24, category: 'bit',                   name: 'Needle',               bey: 'Universale',       color: 'Bianco',      type: 'stamina', condition: 'MN', qty: 3, price: 2.20,  sellerId: 'demo-seller-1', sellerEmail: 'mario@example.it',   photo: 'https://placehold.co/600x400/0d1117/3be0a0?text=Needle' },
+  { id: 25, category: 'bit',                   name: 'Kick',                 bey: 'Universale',       color: 'Giallo',      type: 'attack',  condition: 'LP', qty: 1, price: 1.80,  sellerId: 'demo-seller-2', sellerEmail: 'luca@example.it',    photo: 'https://placehold.co/600x400/0d1117/3be0a0?text=Kick' },
   // Launcher
-  { id: 26, category: 'launcher',              name: 'String Launcher L',    bey: 'N/A',              color: 'Nero',        type: null,      condition: 'GD', qty: 1, price: 7.00,  photo: 'https://placehold.co/600x400/0d1117/ff6b6b?text=String+L' },
-  { id: 27, category: 'launcher',              name: 'Ripcord Launcher',     bey: 'N/A',              color: 'Rosso',       type: null,      condition: 'NM', qty: 2, price: 4.50,  photo: 'https://placehold.co/600x400/0d1117/ff6b6b?text=Ripcord' },
-  { id: 28, category: 'launcher',              name: 'Light Launcher 2',     bey: 'N/A',              color: 'Blu',         type: null,      condition: 'MN', qty: 1, price: 5.50,  photo: 'https://placehold.co/600x400/0d1117/ff6b6b?text=Light+L2' },
+  { id: 26, category: 'launcher',              name: 'String Launcher L',    bey: 'N/A',              color: 'Nero',        type: null,      condition: 'GD', qty: 1, price: 7.00,  sellerId: 'demo-seller-3', sellerEmail: 'giulia@example.it',  photo: 'https://placehold.co/600x400/0d1117/ff6b6b?text=String+L' },
+  { id: 27, category: 'launcher',              name: 'Ripcord Launcher',     bey: 'N/A',              color: 'Rosso',       type: null,      condition: 'NM', qty: 2, price: 4.50,  sellerId: 'demo-seller-1', sellerEmail: 'mario@example.it',   photo: 'https://placehold.co/600x400/0d1117/ff6b6b?text=Ripcord' },
+  { id: 28, category: 'launcher',              name: 'Light Launcher 2',     bey: 'N/A',              color: 'Blu',         type: null,      condition: 'MN', qty: 1, price: 5.50,  sellerId: 'demo-seller-2', sellerEmail: 'luca@example.it',    photo: 'https://placehold.co/600x400/0d1117/ff6b6b?text=Light+L2' },
   // Accessori
-  { id: 29, category: 'accessories',           name: 'Stadium BX-15',        bey: 'N/A',              color: 'Bianco',      type: null,      condition: 'GD', qty: 1, price: 15.00, photo: 'https://placehold.co/600x400/0d1117/5b7fff?text=Stadium' },
-  { id: 30, category: 'accessories',           name: 'Carry Case 12 pezzi',  bey: 'N/A',              color: 'Nero',        type: null,      condition: 'NM', qty: 2, price: 8.00,  photo: 'https://placehold.co/600x400/0d1117/5b7fff?text=Case' },
-  { id: 31, category: 'accessories',           name: 'Beyblade Grip',        bey: 'N/A',              color: 'Rosso',       type: null,      condition: 'MN', qty: 3, price: 3.50,  photo: 'https://placehold.co/600x400/0d1117/5b7fff?text=Grip' },
+  { id: 29, category: 'accessories',           name: 'Stadium BX-15',        bey: 'N/A',              color: 'Bianco',      type: null,      condition: 'GD', qty: 1, price: 15.00, sellerId: 'demo-seller-3', sellerEmail: 'giulia@example.it',  photo: 'https://placehold.co/600x400/0d1117/5b7fff?text=Stadium' },
+  { id: 30, category: 'accessories',           name: 'Carry Case 12 pezzi',  bey: 'N/A',              color: 'Nero',        type: null,      condition: 'NM', qty: 2, price: 8.00,  sellerId: 'demo-seller-1', sellerEmail: 'mario@example.it',   photo: 'https://placehold.co/600x400/0d1117/5b7fff?text=Case' },
+  { id: 31, category: 'accessories',           name: 'Beyblade Grip',        bey: 'N/A',              color: 'Rosso',       type: null,      condition: 'MN', qty: 3, price: 3.50,  sellerId: 'demo-seller-2', sellerEmail: 'luca@example.it',    photo: 'https://placehold.co/600x400/0d1117/5b7fff?text=Grip' },
 ];
 
 // ---- Legge la categoria dalla pagina ----
@@ -138,11 +138,16 @@ function qtyCell(qty, id) {
 function renderRow(item) {
   const price = parseFloat(item.price ?? 0).toFixed(2);
   const beyLabel = item.bey && item.bey !== 'N/A' ? `<span class="listing-bey">${item.bey}</span>` : '';
+  const sellerNick = item.sellerEmail ? item.sellerEmail.split('@')[0] : '';
+  const sellerLink = item.sellerId && sellerNick
+    ? `<a class="listing-seller-link" href="seller.html?id=${encodeURIComponent(item.sellerId)}&email=${encodeURIComponent(item.sellerEmail)}" title="Vedi profilo di ${sellerNick}">@${sellerNick}</a>`
+    : '';
   return `
     <tr data-id="${item.id}" data-name="${item.name}" data-price="${item.price ?? 0}" data-img="${item.photo ?? ''}">
       <td class="col-name">
         <span class="listing-name">${item.name}</span>
         ${beyLabel}
+        ${sellerLink}
       </td>
       <td class="col-type">${typeCell(item.type)}</td>
       <td class="col-cond">${condBadge(item.condition)}</td>
