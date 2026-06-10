@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>La mia vetrina – BeyMarket</title>
+  <link rel="icon" type="image/png" href="../assets/logo-piccolo.png" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="../css/style.css" />
+  <script src="../js/theme.js" defer></script>
+  <style>
+    /* ── Layout ─────────────────────────────────────────── */
+    .store-wrapper { max-width: 1100px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+
+    .store-hero {
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+      background: var(--card-bg, #fff);
+      border: 1px solid var(--border, #e5e7eb);
+      border-radius: 14px;
+      padding: 1.5rem 2rem;
+      margin-bottom: 2.5rem;
+    }
+    .store-avatar {
+      width: 60px; height: 60px; border-radius: 50%;
+      background: var(--accent, #e63946);
+      color: #fff; font-size: 1.8rem; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .store-hero h1 { margin: 0 0 0.2rem; font-size: 1.4rem; }
+    .store-hero p  { margin: 0; color: var(--text-secondary, #888); font-size: 0.9rem; }
+
+    /* ── Sezioni ─────────────────────────────────────────── */
+    .section-title {
+      font-size: 1.2rem; font-weight: 700;
+      margin: 0 0 1rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 2px solid var(--accent, #e63946);
+      display: inline-block;
+    }
+    .store-section { margin-bottom: 3rem; }
+
+    /* ── Griglia card ────────────────────────────────────── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1.2rem;
+    }
+
+    .card {
+      background: var(--card-bg, #fff);
+      border: 1px solid var(--border, #e5e7eb);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: box-shadow 0.18s;
+    }
+    .card:hover { box-shadow: 0 4px 18px rgba(0,0,0,0.09); }
+
+    .card__img {
+      width: 100%; aspect-ratio: 4/3; object-fit: cover;
+      background: #f0f0f0;
+    }
+    .card__img-placeholder {
+      width: 100%; aspect-ratio: 4/3;
+      background: linear-gradient(135deg,#f0f0f0,#e0e0e0);
+      display: flex; align-items: center; justify-content: center;
+      color: #bbb; font-size: 2.5rem;
+    }
+    .card__body { padding: 0.85rem 1rem; flex: 1; display: flex; flex-direction: column; gap: 0.3rem; }
+    .card__name { font-weight: 700; font-size: 1rem; margin: 0; }
+    .card__sub  { color: var(--text-secondary, #888); font-size: 0.82rem; }
+    .card__price { font-size: 1.1rem; font-weight: 800; color: var(--accent, #e63946); margin-top: auto; }
+
+    .card__footer {
+      padding: 0.6rem 1rem;
+      border-top: 1px solid var(--border, #e5e7eb);
+      display: flex; gap: 0.5rem; flex-wrap: wrap;
+    }
+
+    /* ── Badge stato ordine ──────────────────────────────── */
+    .status-badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .status-pending   { background:#fff3cd; color:#856404; }
+    .status-shipped   { background:#cfe2ff; color:#084298; }
+    .status-completed { background:#d1e7dd; color:#0a3622; }
+    .status-cancelled { background:#e2e3e5; color:#41464b; }
+    .status-disputed  { background:#f8d7da; color:#842029; }
+
+    /* ── Pulsanti ────────────────────────────────────────── */
+    .btn-sm {
+      padding: 0.3rem 0.75rem; font-size: 0.82rem;
+      border-radius: 6px; border: none; cursor: pointer;
+      font-weight: 600; transition: opacity 0.15s;
+    }
+    .btn-sm:hover { opacity: 0.85; }
+    .btn-primary-sm { background: var(--accent,#e63946); color:#fff; }
+    .btn-blue-sm    { background: #2196f3; color:#fff; }
+    .btn-outline-sm {
+      background: transparent;
+      border: 1.5px solid var(--border,#e5e7eb);
+      color: var(--text,#333);
+    }
+
+    /* ── Tracking form inline ────────────────────────────── */
+    .tracking-row {
+      display: flex; gap: 0.4rem; align-items: center;
+      padding: 0.5rem 1rem 0.7rem;
+      border-top: 1px solid var(--border,#e5e7eb);
+    }
+    .tracking-input {
+      flex: 1; padding: 0.3rem 0.6rem; border-radius: 6px;
+      border: 1.5px solid var(--border,#ccc);
+      font-size: 0.82rem;
+    }
+
+    /* ── Empty state ─────────────────────────────────────── */
+    .empty-state {
+      text-align: center; padding: 3rem 1rem;
+      color: var(--text-secondary,#888); font-size: 0.95rem;
+    }
+
+    /* ── Modal dettaglio ─────────────────────────────────── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 5000; padding: 1rem;
+    }
+    .modal-overlay.hidden { display: none; }
+    .modal-box {
+      background: var(--card-bg,#fff);
+      border-radius: 14px;
+      padding: 1.8rem 2rem;
+      max-width: 480px; width: 100%;
+      max-height: 90vh; overflow-y: auto;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute; top: 1rem; right: 1rem;
+      background: none; border: none; font-size: 1.4rem;
+      cursor: pointer; color: var(--text,#333);
+    }
+    .modal-box h3 { margin-top: 0; }
+    .modal-row { display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px solid var(--border,#eee); font-size: 0.9rem; }
+    .modal-row:last-child { border-bottom: none; }
+    .modal-label { color: var(--text-secondary,#888); }
+
+    /* ── Accesso richiesto ───────────────────────────────── */
+    #not-logged { display: none; text-align: center; padding: 5rem 1rem; }
+  </style>
+</head>
+<body>
+
+<!-- ===== HEADER / NAVBAR ===== -->
+<header class="navbar">
+  <a href="../home.html" class="navbar__logo">
+    <img src="../assets/logo.png" alt="BeyMarket Logo" />
+  </a>
+  <nav class="navbar__links">
+    <a href="../home.html" class="nav-link">Home</a>
+    <a href="bit.html" class="nav-link">Bit</a>
+    <a href="accessories.html" class="nav-link">Accessori</a>
+    <a href="launcher.html" class="nav-link">Launcher</a>
+  </nav>
+  <div class="navbar__actions">
+    <div id="navbar-user"></div>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Cambia tema">
+      <span class="toggle-track"><span class="toggle-knob">
+        <svg class="knob-icon knob-icon--sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+          <circle cx="8" cy="8" r="3" fill="currentColor"/>
+          <line x1="8" y1="1" x2="8" y2="3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="8" y1="13" x2="8" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="2.93" y1="2.93" x2="4.34" y2="4.34" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="11.66" y1="11.66" x2="13.07" y2="13.07" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="1" y1="8" x2="3" y2="8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="13" y1="8" x2="15" y2="8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <svg class="knob-icon knob-icon--moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+          <path d="M14 10.5A6 6 0 1 1 7.5 2a4.5 4.5 0 0 0 6.5 8.5z" fill="currentColor"/>
+        </svg>
+      </span></span>
+    </button>
+    <a href="inbox.html" class="navbar__msg" id="navbar-msg-icon" aria-label="Messaggi" style="display:none">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+      </svg>
+      <span class="cart-badge msg-badge" id="msg-badge" style="display:none">0</span>
+    </a>
+    <a href="cart.html" class="navbar__cart" aria-label="Carrello">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+      </svg>
+      <span class="cart-badge" id="cart-count">0</span>
+    </a>
+  </div>
+</header>
+
+<!-- ===== CONTENUTO ===== -->
+<div id="not-logged">
+  <p style="font-size:1.1rem;">Devi effettuare il login per vedere la tua vetrina.</p>
+  <button class="btn btn--primary" onclick="window.BeyAuth?.openModal('login')">Accedi</button>
+</div>
+
+<div class="store-wrapper" id="store-content" style="display:none">
+
+  <!-- Intestazione -->
+  <div class="store-hero">
+    <div class="store-avatar" id="store-avatar">?</div>
+    <div>
+      <h1 id="store-name">La mia vetrina</h1>
+      <p id="store-email"></p>
+    </div>
+  </div>
+
+  <!-- Annunci attivi -->
+  <div class="store-section">
+    <h2 class="section-title">📦 Annunci in vendita</h2>
+    <div class="cards-grid" id="grid-listings"></div>
+    <div class="empty-state" id="empty-listings" style="display:none">Non hai ancora annunci attivi.</div>
+  </div>
+
+  <!-- Vendite -->
+  <div class="store-section">
+    <h2 class="section-title">✅ Vendite effettuate</h2>
+    <div class="cards-grid" id="grid-sales"></div>
+    <div class="empty-state" id="empty-sales" style="display:none">Non hai ancora effettuato vendite.</div>
+  </div>
+
+</div>
+
+<!-- ===== MODAL DETTAGLIO ===== -->
+<div class="modal-overlay hidden" id="detail-modal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h3 id="modal-title">Dettaglio ordine</h3>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<!-- ===== AUTH MODAL ===== -->
+<div class="auth-overlay" id="auth-overlay" aria-hidden="true">
+  <div class="auth-modal" role="dialog" aria-modal="true">
+    <button class="auth-modal__close" id="auth-close" aria-label="Chiudi">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+    <h2 class="auth-modal__title">Il tuo account</h2>
+    <div class="auth-tabs">
+      <button class="auth-tab auth-tab--active" data-tab="login">Accedi</button>
+      <button class="auth-tab" data-tab="register">Registrati</button>
+    </div>
+    <form class="auth-form" id="form-login">
+      <div class="auth-field">
+        <label class="auth-field__label" for="login-email">Email</label>
+        <input class="auth-field__input" type="email" id="login-email" placeholder="nome@email.com" autocomplete="email" required />
+      </div>
+      <div class="auth-field">
+        <label class="auth-field__label" for="login-password">Password</label>
+        <input class="auth-field__input" type="password" id="login-password" placeholder="min. 6 caratteri" autocomplete="current-password" required />
+      </div>
+      <p class="auth-error" id="login-error"></p>
+      <button type="submit" class="btn btn--primary auth-submit">Accedi</button>
+    </form>
+    <form class="auth-form" id="form-register" hidden>
+      <div class="auth-field">
+        <label class="auth-field__label" for="reg-email">Email</label>
+        <input class="auth-field__input" type="email" id="reg-email" placeholder="nome@email.com" autocomplete="email" required />
+      </div>
+      <div class="auth-field">
+        <label class="auth-field__label" for="reg-password">Password</label>
+        <input class="auth-field__input" type="password" id="reg-password" placeholder="min. 6 caratteri" autocomplete="new-password" required minlength="6" />
+      </div>
+      <div class="auth-field">
+        <label class="auth-field__label" for="reg-confirm">Conferma Password</label>
+        <input class="auth-field__input" type="password" id="reg-confirm" placeholder="ripeti la password" autocomplete="new-password" required minlength="6" />
+      </div>
+      <p class="auth-error" id="reg-error"></p>
+      <button type="submit" class="btn btn--primary auth-submit">Crea account</button>
+    </form>
+  </div>
+</div>
+
+<script src="../js/auth.js"></script>
+<script src="../js/cart.js"></script>
+<script src="../js/messages.js"></script>
+<script>
+const API = 'http://localhost:3000';
+
+// ── Helpers ──────────────────────────────────────────────
+
+function esc(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function statusBadge(s) {
+  const map = {
+    pending:   ['In attesa',  'status-pending'],
+    shipped:   ['Spedito',    'status-shipped'],
+    completed: ['Completato', 'status-completed'],
+    cancelled: ['Annullato',  'status-cancelled'],
+    disputed:  ['Controversia','status-disputed'],
+  };
+  const [label, cls] = map[s] || [s, ''];
+  return '<span class="status-badge ' + cls + '">' + label + '</span>';
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('it-IT', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+// ── Modal ────────────────────────────────────────────────
+
+function showModal(order) {
+  document.getElementById('modal-title').textContent = 'Ordine #' + order.id + ' – ' + esc(order.listing_name);
+  document.getElementById('modal-body').innerHTML =
+    row('Stato', statusBadge(order.status)) +
+    row('Acquirente', esc(order.buyer_email || order.buyer_id)) +
+    row('Articolo', esc(order.listing_name)) +
+    row('Quantità', order.qty) +
+    row('Prezzo unitario', '€ ' + Number(order.unit_price).toFixed(2)) +
+    row('Totale', '€ ' + Number(order.total).toFixed(2)) +
+    row('Escrow', '€ ' + Number(order.escrow_amount).toFixed(2)) +
+    row('Tracking', order.tracking_code || '—') +
+    row('Controversia', order.dispute_reason || '—') +
+    row('Data ordine', fmtDate(order.created_at)) +
+    row('Completato il', fmtDate(order.completed_at));
+  document.getElementById('detail-modal').classList.remove('hidden');
+}
+
+function row(label, value) {
+  return '<div class="modal-row"><span class="modal-label">' + label + '</span><span>' + value + '</span></div>';
+}
+
+function closeModal() {
+  document.getElementById('detail-modal').classList.add('hidden');
+}
+document.getElementById('detail-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ── Caricamento annunci attivi ───────────────────────────
+
+async function loadListings(userId) {
+  const grid  = document.getElementById('grid-listings');
+  const empty = document.getElementById('empty-listings');
+  grid.innerHTML = '<p style="color:#888;font-size:.9rem">Caricamento…</p>';
+
+  const res = await window.BeyAuth.backendFetch('/listings?seller=' + userId);
+  // Fallback: prova la route generica e filtra lato client
+  let items = [];
+  if (res.ok && Array.isArray(res.data)) {
+    items = res.data.filter(l => String(l.seller_id) === String(userId));
+  } else {
+    // route /listings non filtra per seller: carichiamo tutte e filtriamo
+    const all = await window.BeyAuth.backendFetch('/listings');
+    if (all.ok && Array.isArray(all.data)) {
+      items = all.data.filter(l => String(l.seller_id) === String(userId));
+    }
+  }
+
+  if (!items.length) {
+    grid.innerHTML = '';
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+  grid.innerHTML = items.map(l => listingCard(l)).join('');
+}
+
+function listingCard(l) {
+  const price = Number(l.price || 0).toFixed(2);
+  const img   = l.photo
+    ? '<img class="card__img" src="' + esc(l.photo) + '" alt="" loading="lazy" />'
+    : '<div class="card__img-placeholder">📦</div>';
+  return '<div class="card">' +
+    img +
+    '<div class="card__body">' +
+      '<p class="card__name">' + esc(l.name) + '</p>' +
+      '<p class="card__sub">' + esc(l.category) + (l.bey ? ' · ' + esc(l.bey) : '') + '</p>' +
+      '<p class="card__sub">Qt. disponibile: <strong>' + l.qty + '</strong></p>' +
+      '<p class="card__price">€ ' + price + '</p>' +
+    '</div>' +
+  '</div>';
+}
+
+// ── Caricamento vendite ──────────────────────────────────
+
+async function loadSales() {
+  const grid  = document.getElementById('grid-sales');
+  const empty = document.getElementById('empty-sales');
+  grid.innerHTML = '<p style="color:#888;font-size:.9rem">Caricamento…</p>';
+
+  const res = await window.BeyAuth.backendFetch('/orders');
+  if (!res.ok) { grid.innerHTML = '<p style="color:#e63946">Errore nel caricamento delle vendite.</p>'; return; }
+
+  const sales = (res.data.asSeller || []);
+  if (!sales.length) {
+    grid.innerHTML = '';
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+  grid.innerHTML = sales.map(o => saleCard(o)).join('');
+}
+
+function saleCard(o) {
+  const total = Number(o.total || 0).toFixed(2);
+  return '<div class="card" id="sale-card-' + o.id + '">' +
+    '<div class="card__body">' +
+      '<p class="card__name">' + esc(o.listing_name) + '</p>' +
+      '<p class="card__sub">Qt: ' + o.qty + ' · Totale: <strong>€ ' + total + '</strong></p>' +
+      '<p class="card__sub">Data: ' + fmtDate(o.created_at) + '</p>' +
+      '<p class="card__sub" style="margin-top:.4rem">' + statusBadge(o.status) + '</p>' +
+    '</div>' +
+    '<div class="card__footer">' +
+      '<button class="btn-sm btn-outline-sm" onclick=\'showModal(' + JSON.stringify(o) + ')\'>Dettagli</button>' +
+    '</div>' +
+    // Campo tracking solo se pending o shipped
+    ((['pending','shipped'].includes(o.status))
+      ? '<div class="tracking-row">' +
+          '<input class="tracking-input" id="trk-' + o.id + '" placeholder="Codice tracking…" value="' + esc(o.tracking_code || '') + '" />' +
+          '<button class="btn-sm btn-blue-sm" onclick="saveTracking(' + o.id + ')">Salva</button>' +
+        '</div>'
+      : (o.tracking_code ? '<div style="padding:.4rem 1rem .6rem;font-size:.82rem;color:#888">📦 ' + esc(o.tracking_code) + '</div>' : '')) +
+  '</div>';
+}
+
+async function saveTracking(orderId) {
+  const input = document.getElementById('trk-' + orderId);
+  const code  = input?.value.trim();
+  if (!code) return;
+  const res = await window.BeyAuth.backendFetch('/orders/' + orderId + '/tracking', {
+    method: 'POST',
+    body:   JSON.stringify({ trackingCode: code }),
+  });
+  if (!res.ok) { alert('Errore: ' + res.error); return; }
+  input.style.borderColor = '#43a047';
+  setTimeout(() => { if (input) input.style.borderColor = ''; }, 1500);
+  // Aggiorna anche la route /orders/:id/shipped se non già spedito
+  if (res.data.order && res.data.order.status === 'pending') {
+    await window.BeyAuth.backendFetch('/orders/' + orderId + '/shipped', { method: 'POST' });
+    loadSales();
+  }
+}
+
+// ── Init ─────────────────────────────────────────────────
+
+function init() {
+  const user = window.BeyAuth?.getUser();
+  if (!user) {
+    document.getElementById('not-logged').style.display = 'block';
+    return;
+  }
+  const nick = user.email.split('@')[0];
+  document.getElementById('store-content').style.display = '';
+  document.getElementById('store-avatar').textContent = nick.charAt(0).toUpperCase();
+  document.getElementById('store-name').textContent    = nick + ' – La mia vetrina';
+  document.getElementById('store-email').textContent   = user.email;
+
+  loadListings(user.id);
+  loadSales();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('beymarket:auth-change', init);
+</script>
+</body>
+</html>

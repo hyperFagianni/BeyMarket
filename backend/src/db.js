@@ -59,6 +59,8 @@ CREATE TABLE IF NOT EXISTS wallet_transactions (
 -- status: 'pending' | 'shipped' | 'completed' | 'cancelled' | 'disputed'
 CREATE TABLE IF NOT EXISTS orders (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
+  tracking_code TEXT,
+  dispute_reason TEXT,
   buyer_id INTEGER NOT NULL,
   seller_id INTEGER,
   listing_id INTEGER NOT NULL,
@@ -107,6 +109,8 @@ const migrations = [
   'ALTER TABLE users ADD COLUMN balance REAL NOT NULL DEFAULT 0',
   "ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'user'",
   'ALTER TABLE listings ADD COLUMN seller_id INTEGER',
+  'ALTER TABLE orders ADD COLUMN tracking_code TEXT',
+  'ALTER TABLE orders ADD COLUMN dispute_reason TEXT',
 ];
 for (const sql of migrations) {
   try { db.exec(sql); } catch (_) { /* colonna già presente */ }

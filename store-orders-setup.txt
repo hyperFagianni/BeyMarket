@@ -1,0 +1,225 @@
+====================================================
+  BEYMARKET – VETRINA / ACQUISTI: DOCUMENTAZIONE
+====================================================
+Data generazione: 10/06/2026
+
+
+----------------------------------------------------
+COSA È STATO CREATO / MODIFICATO
+----------------------------------------------------
+
+1. js/auth.js
+   - Aggiunti due pulsanti nella navbar visibili
+     SOLO dopo il login:
+     · "Vetrina"   → rimanda a pages/my-store.html
+     · "Acquisti"  → rimanda a pages/my-orders.html
+
+2. css/style.css
+   - Aggiunta classe .navbar__user-link per lo stile
+     dei due nuovi pulsanti nella navbar
+
+3. pages/my-store.html  ← FILE NUOVO
+   - Pagina personale del venditore con:
+     · Sezione "Annunci in vendita" (griglia)
+     · Sezione "Vendite effettuate" (griglia)
+     · Per ogni vendita: pulsante Dettagli (modal)
+       e campo inline per inserire il codice tracking
+
+4. pages/my-orders.html  ← FILE NUOVO
+   - Pagina degli acquisti divisa in 3 TAB:
+     · "In corso"               (pending / shipped / disputed)
+     · "Completati"             (completed)
+     · "Annullati / Rimborsati" (cancelled / refunded)
+   - Ogni card ha i pulsanti:
+     · Dettagli          → modal con tutti i dati
+     · Confermato arrivo → sblocca fondi al venditore
+     · Contatta venditore → apre la chat
+     · Apri controversia → modal con campo testo,
+                           congela i fondi in escrow
+   - Mostra il codice tracking se inserito dal venditore
+
+5. backend/src/routes/orders.js
+   - Aggiunto import del modulo db
+   - Aggiunta route: POST /orders/:id/tracking
+     (solo il venditore può aggiornare il tracking)
+   - Aggiunta route: POST /orders/:id/dispute
+     (solo l'acquirente può aprire una controversia)
+
+6. backend/src/db.js
+   - Aggiunta colonna "tracking_code" alla tabella orders
+   - Aggiunta colonna "dispute_reason" alla tabella orders
+   - Aggiunte le relative migrazioni automatiche per
+     database già esistenti
+
+
+----------------------------------------------------
+NUOVE API BACKEND
+----------------------------------------------------
+
+  POST /orders/:id/tracking
+    Autenticazione: Bearer token (venditore dell'ordine)
+    Body: { "trackingCode": "stringa" }
+    → Salva il codice di tracciamento spedizione
+    → Se l'ordine è 'pending', lo segna come 'shipped'
+
+  POST /orders/:id/dispute
+    Autenticazione: Bearer token (acquirente dell'ordine)
+    Body: { "reason": "stringa" }
+    → Imposta lo stato ordine su 'disputed'
+    → Congela i fondi in escrow fino all'intervento admin
+    → Il motivo viene salvato in dispute_reason
+
+
+----------------------------------------------------
+PASSI DA FARE PRIMA DI ANDARE IN PRODUZIONE
+----------------------------------------------------
+
+PASSO 1 – Configurare le variabili d'ambiente
+  Crea il file backend/.env con i valori reali:
+
+    PORT=3000
+    DATABASE_FILE=data/beymarket.db
+    JWT_SECRET=una-stringa-casuale-lunghissima-e-sicura
+    JWT_EXPIRES=24h
+
+  IMPORTANTE: JWT_SECRET deve essere una stringa
+  casuale di almeno 64 caratteri. Non usare mai il
+  valore di default "change-this-to-a-strong-secret".
+  Generala con: node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+
+
+PASSO 2 – Sostituire Supabase con valori reali
+  Nel file js/auth.js, sostituisci:
+
+    const SB_URL = 'https://XXXXXXXX.supabase.co';
+    const SB_KEY = 'eyJhbGci...';
+
+  Con le credenziali del tuo progetto Supabase.
+  Se NON usi Supabase, lascia i valori com'è:
+  il sito userà il backend Express locale (Demo Mode).
+
+
+PASSO 3 – Aggiornare BACKEND_URL in auth.js
+  Nel file js/auth.js, cambia:
+
+    const BACKEND_URL = 'http://localhost:3000';
+
+  Con l'URL del tuo server in produzione, es:
+
+    const BACKEND_URL = 'https://api.beymarket.it';
+
+
+PASSO 4 – Creare il primo admin
+  Dopo aver avviato il backend sul server di produzione,
+  esegui lo script:
+
+    node scripts/create-admin.js admin@beymarket.it LatuaPassword!
+
+  Poi accedi al pannello su: /pages/admin.html
+
+
+PASSO 5 – Mettere il backend dietro un reverse proxy
+  In produzione NON esporre Express direttamente.
+  Usa nginx o Apache come reverse proxy con HTTPS.
+
+  Esempio configurazione nginx:
+
+    server {
+      listen 443 ssl;
+      server_name api.beymarket.it;
+
+      location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+      }
+    }
+
+  Usa Let's Encrypt (Certbot) per il certificato SSL gratuito.
+
+
+PASSO 6 – CORS in produzione
+  Nel file backend/src/index.js, sostituisci:
+
+    app.use(cors({ origin: true }));
+
+  Con l'origine esatta del tuo frontend, es:
+
+    app.use(cors({ origin: 'https://www.beymarket.it' }));
+
+  Questo impedisce chiamate API da altri siti.
+
+
+PASSO 7 – Aggiornare i link nelle pagine HTML
+  Tutte le pagine usano percorsi relativi (../assets, ecc.).
+  Se servi il sito da una sottocartella o da un CDN,
+  verifica che i percorsi siano corretti.
+
+  I due nuovi file da includere nel deploy:
+    · pages/my-store.html
+    · pages/my-orders.html
+
+
+PASSO 8 – Backup del database
+  Il database SQLite è un singolo file:
+    backend/data/beymarket.db
+
+  In produzione configura un backup automatico
+  periodico (es. cron giornaliero su un bucket S3
+  o su Google Drive).
+
+  Esempio cron (ogni giorno alle 3:00):
+    0 3 * * * cp /path/backend/data/beymarket.db /backup/beymarket-$(date +\%Y\%m\%d).db
+
+
+PASSO 9 – Usare un process manager
+  Avvia il backend con pm2 per tenerlo sempre attivo:
+
+    npm install -g pm2
+    cd backend
+    pm2 start src/index.js --name beymarket-backend
+    pm2 save
+    pm2 startup
+
+
+PASSO 10 – Rate limiting (anti-spam / sicurezza)
+  Aggiungi il pacchetto express-rate-limit per
+  proteggere le route di login e registrazione
+  da attacchi brute-force:
+
+    cd backend
+    npm install express-rate-limit
+
+  Poi in backend/src/index.js:
+
+    const rateLimit = require('express-rate-limit');
+    const limiter = rateLimit({ windowMs: 15*60*1000, max: 100 });
+    app.use(limiter);
+
+
+----------------------------------------------------
+FILE CREATI / MODIFICATI – RIEPILOGO RAPIDO
+----------------------------------------------------
+
+  NUOVO     pages/my-store.html
+  NUOVO     pages/my-orders.html
+
+  MODIFICATO  js/auth.js
+  MODIFICATO  css/style.css
+  MODIFICATO  backend/src/routes/orders.js
+  MODIFICATO  backend/src/db.js
+
+
+----------------------------------------------------
+FLUSSO COMPLETO DI UN ORDINE (riepilogo)
+----------------------------------------------------
+
+  1. Acquirente compra → ordine 'pending', fondi in escrow
+  2. Venditore inserisce tracking → ordine 'shipped'
+  3a. Acquirente conferma arrivo → ordine 'completed',
+      fondi sbloccati al venditore
+  3b. Acquirente apre controversia → ordine 'disputed',
+      fondi congelati, admin interviene dal pannello
+      (pages/admin.html → tab Ordini → pulsante Rimborsa)
+
+====================================================

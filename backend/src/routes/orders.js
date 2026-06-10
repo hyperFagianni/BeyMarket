@@ -9,6 +9,7 @@
 
 const express = require('express');
 const auth    = require('../middleware/auth');
+const db      = require('../db');
 const {
   createOrder,
   markShipped,
@@ -117,6 +118,51 @@ router.post('/:id/cancel', (req, res) => {
                    err.message === 'Non autorizzato'    ? 403 : 400;
     res.status(status).json({ error: err.message });
   }
+});
+
+// ── POST /orders/:id/tracking ─────────────────────────────
+// Solo il venditore può aggiungere/aggiornare il codice di tracciamento.
+// Body: { trackingCode: string }
+
+router.post('/:id/tracking', (req, res) => {
+  const { trackingCode } = req.body;
+  if (!trackingCode || !trackingCode.trim()) {
+    return res.status(400).json({ error: 'trackingCode richiesto' });
+  }
+  const orderId = Number(req.params.id);
+  const order   = db.prepare('SELECT * FROM orders WHERE id = ?').get(orderId);
+  if (!order) return res.status(404).json({ error: 'Ordine non trovato' });
+  if (order.seller_id !== req.user.id) return res.status(403).json({ error: 'Non autorizzato' });
+  if (!['pending', 'shipped'].includes(order.status)) {
+    return res.status(400).json({ error: 'Impossibile aggiornare il tracking in questo stato' });
+  }
+  db.prepare('UPDATE orders SET tracking_code = ? WHERE id = ?').run(trackingCode.trim(), orderId);
+  const updated = db.prepare('SELECT * FROM orders WHERE id = ?').get(orderId);
+  res.json({ ok: true, order: updated });
+});
+
+// ── POST /orders/:id/dispute ──────────────────────────────
+// L'acquirente apre una controversia. L'ordine passa a 'disputed'
+// e i fondi rimangono in escrow fino all'intervento dell'admin.
+// Body: { reason: string }
+
+router.post('/:id/dispute', (req, res) => {
+  const { reason } = req.body;
+  if (!reason || !reason.trim()) {
+    return res.status(400).json({ error: 'Motivo della controversia richiesto' });
+  }
+  const orderId = Number(req.params.id);
+  const order   = db.prepare('SELECT * FROM orders WHERE id = ?').get(orderId);
+  if (!order) return res.status(404).json({ error: 'Ordine non trovato' });
+  if (order.buyer_id !== req.user.id) return res.status(403).json({ error: 'Non autorizzato' });
+  if (!['pending', 'shipped'].includes(order.status)) {
+    return res.status(400).json({ error: 'Non è possibile aprire una controversia in questo stato' });
+  }
+  db.prepare(
+    "UPDATE orders SET status = 'disputed', dispute_reason = ? WHERE id = ?"
+  ).run(reason.trim(), orderId);
+  const updated = db.prepare('SELECT * FROM orders WHERE id = ?').get(orderId);
+  res.json({ ok: true, order: updated });
 });
 
 module.exports = router;
