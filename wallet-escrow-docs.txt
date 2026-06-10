@@ -1,0 +1,454 @@
+================================================================
+  BEYMARKET – SISTEMA PORTAFOGLIO, ESCROW E ORDINI
+  Documentazione tecnica implementazione v2.0
+================================================================
+
+----------------------------------------------------------------
+  PANORAMICA
+----------------------------------------------------------------
+
+Ogni utente registrato possiede un "conto" interno a BeyMarket
+(campo "balance" sulla tabella "users" del database SQLite).
+Il saldo può essere ricaricato tramite metodi di pagamento esterni
+(PayPal, bonifico bancario) e usato per acquistare prodotti.
+
+Quando un acquisto viene effettuato, i fondi NON vanno subito
+al venditore: vengono trattenuti in "escrow" (deposito garantito)
+finché l'acquirente non conferma di aver ricevuto il pacco.
+Solo a quel punto il venditore vede i soldi accreditati sul suo
+conto BeyMarket, e può poi richiedere un prelievo verso il suo
+IBAN o PayPal personale.
+
+----------------------------------------------------------------
+  STRUTTURA DATABASE (SQLite)
+----------------------------------------------------------------
+
+File: backend/data/beymarket.db
+
+Tabella: users
+  - id              INTEGER  (chiave primaria)
+  - email           TEXT
+  - password        TEXT     (hash bcryptjs)
+  - balance         REAL     (saldo portafoglio in euro, default 0)
+  - created_at      DATETIME
+
+Tabella: wallet_transactions  (storico ogni movimento di saldo)
+  - id              INTEGER
+  - user_id         INTEGER  (riferimento a users.id)
+  - type            TEXT     → valori possibili:
+                               "deposit"          ricarica saldo
+                               "purchase_debit"   addebito acquisto
+                               "escrow_release"   (futuro uso)
+                               "sale_credit"      accredito venditore
+                               "withdrawal"       prelievo
+  - amount          REAL     (positivo = entrata, negativo = uscita)
+  - reference_id    INTEGER  (id ordine o prelievo collegato)
+  - note            TEXT     (descrizione leggibile)
+  - created_at      DATETIME
+
+Tabella: orders  (ogni ordine con stato escrow)
+  - id              INTEGER
+  - buyer_id        INTEGER  (acquirente)
+  - seller_id       INTEGER  (venditore, può essere NULL se utente non registrato)
+  - listing_id      INTEGER  (prodotto acquistato)
+  - listing_name    TEXT     (nome prodotto al momento dell'acquisto)
+  - qty             INTEGER  (quantità)
+  - unit_price      REAL     (prezzo unitario)
+  - total           REAL     (totale = unit_price × qty)
+  - escrow_amount   REAL     (fondi trattenuti in escrow, diventa 0 a completamento)
+  - status          TEXT     → valori possibili:
+                               "pending"    ordine creato, in attesa spedizione
+                               "shipped"    venditore ha segnato come spedito
+                               "completed"  acquirente ha confermato ricezione
+                               "cancelled"  ordine cancellato con rimborso
+                               "disputed"   (da implementare) in contestazione
+  - created_at      DATETIME
+  - completed_at    DATETIME (valorizzato quando status = "completed")
+
+Tabella: withdrawals  (richieste di prelievo verso IBAN/PayPal)
+  - id              INTEGER
+  - user_id         INTEGER
+  - amount          REAL
+  - method          TEXT     → "iban" oppure "paypal"
+  - destination     TEXT     (IBAN o indirizzo email PayPal)
+  - status          TEXT     → "pending" | "processed" | "failed"
+  - created_at      DATETIME
+  - processed_at    DATETIME (valorizzato quando processato)
+
+----------------------------------------------------------------
+  FILE BACKEND AGGIUNTI / MODIFICATI
+----------------------------------------------------------------
+
+AGGIUNTI:
+  backend/src/models/wallet.js   → logica portafoglio
+  backend/src/models/order.js    → logica ordini + escrow
+  backend/src/routes/wallet.js   → endpoint REST portafoglio
+  backend/src/routes/orders.js   → endpoint REST ordini
+  backend/data/                  → cartella database SQLite
+
+MODIFICATI:
+  backend/src/db.js              → nuove tabelle + migrazione automatica
+  backend/src/index.js           → mount /wallet e /orders
+  backend/src/routes/auth.js     → include "balance" nella risposta login/me
+
+FILE FRONTEND MODIFICATI:
+  js/auth.js                     → integrazione backend, JWT, BeyWallet API,
+                                   saldo navbar
+  css/style.css                  → stile badge saldo verde in navbar
+
+----------------------------------------------------------------
+  ENDPOINT REST – RIFERIMENTO COMPLETO
+----------------------------------------------------------------
+
+Tutti gli endpoint (tranne login/register) richiedono header:
+  Authorization: Bearer <JWT_TOKEN>
+
+── AUTENTICAZIONE ──────────────────────────────────────────────
+
+POST /auth/register
+  Body:    { email, password }
+  Ritorna: { user: { id, email, balance }, token }
+
+POST /auth/login
+  Body:    { email, password }
+  Ritorna: { user: { id, email, balance }, token }
+
+GET  /auth/me
+  Ritorna: { id, email, balance }
+
+── PORTAFOGLIO ─────────────────────────────────────────────────
+
+GET  /wallet/balance
+  Ritorna: { balance: <numero> }
+
+POST /wallet/deposit
+  Body:    { amount: <numero>, method: "paypal"|"bank_transfer"|"manual" }
+  Ritorna: { ok: true, balance: <nuovo saldo> }
+  ⚠ VEDERE SEZIONE "PRODUZIONE" sotto
+
+GET  /wallet/transactions?limit=N
+  Ritorna: array di wallet_transactions (default 50, max 200)
+
+POST /wallet/withdraw
+  Body:    { amount: <numero>, method: "iban"|"paypal", destination: <stringa> }
+  Ritorna: { ok: true, withdrawal: { id, amount, method, destination, status } }
+  ⚠ VEDERE SEZIONE "PRODUZIONE" sotto
+
+GET  /wallet/withdrawals
+  Ritorna: array delle richieste di prelievo dell'utente
+
+── ORDINI ──────────────────────────────────────────────────────
+
+POST /orders/buy
+  Body:    { listingId: <numero>, qty: <numero> }
+  Ritorna: { ok: true, order: { id, status: "pending", escrow_amount, ... } }
+  Effetto: addebita il saldo acquirente, mette i fondi in escrow,
+           scala la quantità dal listing
+
+GET  /orders
+  Ritorna: { asBuyer: [...], asSeller: [...] }
+
+GET  /orders/:id
+  Ritorna: l'ordine singolo (solo per buyer o seller dell'ordine)
+
+POST /orders/:id/shipped
+  (solo il venditore)
+  Ritorna: { ok: true, order: { status: "shipped", ... } }
+
+POST /orders/:id/confirm
+  (solo l'acquirente)
+  Ritorna: { ok: true, order: { status: "completed", ... } }
+  Effetto: escrow_amount trasferito al saldo del venditore
+
+POST /orders/:id/cancel
+  (buyer o seller, solo se status = "pending")
+  Ritorna: { ok: true, order: { status: "cancelled", ... } }
+  Effetto: rimborso completo all'acquirente
+
+----------------------------------------------------------------
+  FLUSSO COMPLETO – PASSO PER PASSO
+----------------------------------------------------------------
+
+1. ACQUIRENTE si registra o fa login
+   → riceve JWT token, il frontend lo salva in localStorage (chiave: "beymarket_jwt")
+   → il saldo (inizialmente 0) appare nella navbar
+
+2. ACQUIRENTE ricarica il conto
+   → chiama POST /wallet/deposit con importo e metodo
+   → il saldo in navbar si aggiorna automaticamente
+
+3. ACQUIRENTE acquista un prodotto
+   → chiama window.BeyWallet.buy(listingId, qty)  [dal frontend]
+     oppure POST /orders/buy  [direttamente]
+   → il totale viene addebitato dal saldo
+   → i fondi entrano in escrow (orders.escrow_amount)
+   → la quantità del listing viene scalata
+
+4. VENDITORE spedisce il pacco
+   → chiama POST /orders/:id/shipped
+   → lo stato diventa "shipped"
+
+5. ACQUIRENTE riceve il pacco e conferma
+   → chiama window.BeyWallet.confirmReceipt(orderId)  [dal frontend]
+     oppure POST /orders/:id/confirm  [direttamente]
+   → escrow_amount viene accreditato al saldo del VENDITORE
+   → lo stato diventa "completed"
+
+6. VENDITORE ritira i soldi
+   → chiama POST /wallet/withdraw con method "iban" o "paypal"
+   → viene creata una richiesta di prelievo (status: "pending")
+   → l'admin del sito la processa manualmente (vedi produzione)
+
+----------------------------------------------------------------
+  FRONTEND – API JAVASCRIPT DISPONIBILI (window.BeyWallet)
+----------------------------------------------------------------
+
+Dopo il login, da qualsiasi pagina sono disponibili:
+
+  await window.BeyWallet.fetchBalance()
+    → Recupera il saldo dal backend e aggiorna la navbar
+
+  await window.BeyWallet.deposit(amount, method)
+    → Ricarica il conto (method: 'paypal', 'bank_transfer', 'manual')
+
+  await window.BeyWallet.withdraw(amount, method, destination)
+    → Richiede prelievo (method: 'iban' o 'paypal')
+
+  await window.BeyWallet.buy(listingId, qty)
+    → Acquista un prodotto con escrow
+
+  await window.BeyWallet.confirmReceipt(orderId)
+    → Conferma ricezione pacco → sblocca fondi al venditore
+
+  await window.BeyWallet.getOrders()
+    → Ritorna { asBuyer: [...], asSeller: [...] }
+
+  await window.BeyWallet.getTransactions(limit)
+    → Ritorna lo storico movimenti del portafoglio
+
+Per le chiamate autenticate personalizzate:
+  await window.BeyAuth.backendFetch('/percorso', { method: 'POST', body: ... })
+
+----------------------------------------------------------------
+  SALDO IN NAVBAR
+----------------------------------------------------------------
+
+Il badge verde "€ xx.xx" appare automaticamente nella navbar
+SOLO per gli utenti loggati. Non è visibile a chi non è autenticato.
+
+Viene aggiornato:
+  - Al login
+  - Dopo ogni deposito
+  - Dopo ogni acquisto
+  - Dopo ogni conferma ricezione
+  - Dopo ogni prelievo
+
+Elemento HTML: <span id="navbar-balance">
+Funzione JS:   _updateBalanceBadge(balance)  [interna ad auth.js]
+
+----------------------------------------------------------------
+  COSA CAMBIARE IN PRODUZIONE
+----------------------------------------------------------------
+
+─────────────────────────────────────────────────────────────────
+1. DEPOSITI – PayPal
+─────────────────────────────────────────────────────────────────
+
+PROBLEMA ATTUALE:
+  POST /wallet/deposit accredita il saldo IMMEDIATAMENTE.
+  In produzione non si può fidare del frontend: chiunque potrebbe
+  chiamare quell'endpoint e ricaricarsi soldi gratis.
+
+COSA FARE:
+  a) Rimuovere (o proteggere solo per admin) POST /wallet/deposit
+  b) Integrare il webhook ufficiale PayPal:
+     - Creare un account PayPal Developer: https://developer.paypal.com
+     - Usare PayPal Orders API v2 per creare un pagamento lato server
+     - Dopo il pagamento, PayPal manda una notifica HTTP (webhook)
+       all'endpoint: POST /webhooks/paypal
+     - In quell'endpoint, verificare la firma del webhook con
+       il SDK ufficiale (@paypal/paypal-server-sdk) e SOLO ALLORA
+       chiamare applyDeposit()
+
+  FILE DA MODIFICARE: backend/src/routes/wallet.js
+  AGGIUNGERE:         backend/src/routes/webhooks.js  (nuovo)
+  AGGIUNGERE IN .env: PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET,
+                      PAYPAL_WEBHOOK_ID
+
+─────────────────────────────────────────────────────────────────
+2. DEPOSITI – Bonifico Bancario
+─────────────────────────────────────────────────────────────────
+
+PROBLEMA ATTUALE: non c'è gestione automatica bonifici.
+
+COSA FARE (opzione semplice):
+  - Mostrare all'utente le coordinate bancarie aziendali e una
+    causale univoca (es. "BM-{userId}-{timestamp}")
+  - L'admin verifica manualmente il bonifico e chiama
+    POST /wallet/deposit con le credenziali admin
+
+COSA FARE (opzione avanzata):
+  - Integrare un provider come Stripe (con SEPA Direct Debit)
+    o GoCardless per la gestione automatica dei bonifici
+  - Usare i loro webhook per accreditare il saldo
+
+─────────────────────────────────────────────────────────────────
+3. PRELIEVI (IBAN / PayPal)
+─────────────────────────────────────────────────────────────────
+
+PROBLEMA ATTUALE:
+  POST /wallet/withdraw crea solo un record nel DB con
+  status="pending". Il bonifico/pagamento PayPal NON viene
+  eseguito automaticamente.
+
+COSA FARE:
+  Per IBAN:
+    - Integrare Stripe Payouts oppure un provider di bonifici
+      come Modulr o Wise Business
+    - Quando arriva una richiesta di prelievo, chiamare l'API
+      del provider per inviare il bonifico
+    - Aggiornare withdrawals.status a "processed" o "failed"
+      in base alla risposta
+
+  Per PayPal:
+    - Usare PayPal Payouts API (https://developer.paypal.com/docs/payouts)
+    - Richiede un account PayPal Business verificato
+    - Aggiornare withdrawals.status di conseguenza
+
+  FILE DA MODIFICARE: backend/src/routes/wallet.js  (aggiungere logica payout)
+  AGGIUNGERE IN .env: STRIPE_SECRET_KEY oppure PAYPAL_PAYOUT_CLIENT_ID
+
+SOLUZIONE MINIMA (manuale):
+  - Creare una pagina admin che lista tutti i withdrawals
+    con status="pending"
+  - L'admin esegue manualmente i pagamenti e aggiorna lo status
+    tramite un endpoint protetto da ruolo admin:
+    PATCH /admin/withdrawals/:id  { status: "processed" }
+
+─────────────────────────────────────────────────────────────────
+4. DATABASE
+─────────────────────────────────────────────────────────────────
+
+PROBLEMA ATTUALE:
+  Si usa SQLite (file locale). Va bene per sviluppo ma non è
+  adatto a un server in produzione con traffico reale.
+
+COSA FARE:
+  - Migrare a PostgreSQL (consigliato) o MySQL
+  - Usare un ORM come Prisma oppure riscrivere le query con
+    il driver "pg" di Node.js
+  - Il servizio può essere hostato su:
+      Supabase (PostgreSQL gratuito con piano free)
+      Railway, Render, o un VPS con PostgreSQL
+
+  FILE DA MODIFICARE: backend/src/db.js  (sostituire better-sqlite3 con pg)
+  Tutti i modelli in backend/src/models/ vanno adattati alla
+  sintassi async/await (il driver pg è asincrono a differenza
+  di better-sqlite3 che è sincrono).
+
+─────────────────────────────────────────────────────────────────
+5. AUTENTICAZIONE E JWT
+─────────────────────────────────────────────────────────────────
+
+PROBLEMA ATTUALE:
+  - JWT_SECRET in config.js ha un valore di default debole
+  - Il token dura 24h fissi senza refresh token
+
+COSA FARE:
+  - Impostare in .env un JWT_SECRET di almeno 64 caratteri casuali
+    (generabile con: node -e "console.log(require('crypto').randomBytes(64).toString('hex'))")
+  - Considerare l'aggiunta di un refresh token per sessioni più lunghe
+  - Aggiungere rate limiting su /auth/login per prevenire brute force
+    (pacchetto: express-rate-limit)
+
+  FILE DA MODIFICARE: backend/src/config.js, backend/src/routes/auth.js
+  AGGIUNGERE IN .env:  JWT_SECRET=<stringa_lunga_casuale>
+
+─────────────────────────────────────────────────────────────────
+6. SICUREZZA GENERALE
+─────────────────────────────────────────────────────────────────
+
+- Impostare CORS in backend/src/index.js con origin espliciti
+  (non "origin: true" che accetta tutto):
+    cors({ origin: 'https://tuo-dominio.com' })
+
+- Aggiungere validazione input con "joi" o "zod" sugli endpoint
+  critici (deposit, withdraw, buy)
+
+- Aggiungere HTTPS (il backend in produzione va dietro nginx
+  o un reverse proxy con certificato Let's Encrypt)
+
+- Non esporre mai il file .env in repository pubblici
+  (aggiungere .env al .gitignore se non già presente)
+
+─────────────────────────────────────────────────────────────────
+7. RUOLO ADMIN (DA IMPLEMENTARE)
+─────────────────────────────────────────────────────────────────
+
+Attualmente non esiste un sistema di ruoli.
+In produzione sarà necessario:
+  - Aggiungere colonna "role" alla tabella users ("user" | "admin")
+  - Creare middleware adminAuth che controlla req.user.role === 'admin'
+  - Proteggere endpoint sensibili (es. gestione prelievi, depositi manuali)
+    con questo middleware
+
+  FILE DA MODIFICARE: backend/src/db.js (colonna role), 
+                      backend/src/middleware/auth.js (aggiungere role)
+  AGGIUNGERE:         backend/src/middleware/adminAuth.js
+
+─────────────────────────────────────────────────────────────────
+8. FRONTEND – URL BACKEND
+─────────────────────────────────────────────────────────────────
+
+PROBLEMA ATTUALE:
+  In js/auth.js riga ~17:
+    const BACKEND_URL = 'http://localhost:3000';
+
+COSA FARE:
+  Sostituire con l'URL del server in produzione:
+    const BACKEND_URL = 'https://api.tuo-dominio.com';
+
+  Oppure, meglio ancora, rilevarlo automaticamente:
+    const BACKEND_URL = window.location.hostname === 'localhost'
+      ? 'http://localhost:3000'
+      : 'https://api.tuo-dominio.com';
+
+  FILE DA MODIFICARE: js/auth.js  (riga con BACKEND_URL)
+
+─────────────────────────────────────────────────────────────────
+9. VARIABILE D'AMBIENTE .env (da creare in backend/)
+─────────────────────────────────────────────────────────────────
+
+Creare il file backend/.env con queste variabili:
+
+  PORT=3000
+  DATABASE_FILE=./data/beymarket.db
+  JWT_SECRET=<stringa_casuale_64_caratteri>
+  JWT_EXPIRES=24h
+
+  # PayPal (aggiungere quando pronto)
+  # PAYPAL_CLIENT_ID=
+  # PAYPAL_CLIENT_SECRET=
+  # PAYPAL_WEBHOOK_ID=
+
+  # Stripe Payouts (aggiungere quando pronto)
+  # STRIPE_SECRET_KEY=
+
+----------------------------------------------------------------
+  RIEPILOGO CHECKLIST PRODUZIONE
+----------------------------------------------------------------
+
+[ ] Sostituire POST /wallet/deposit con webhook PayPal verificato
+[ ] Implementare payout automatici IBAN/PayPal per i prelievi
+[ ] Migrare da SQLite a PostgreSQL
+[ ] Impostare JWT_SECRET forte in .env
+[ ] Aggiungere rate limiting su /auth/login
+[ ] Restringere CORS al dominio reale
+[ ] Aggiungere HTTPS (nginx + Let's Encrypt)
+[ ] Sostituire BACKEND_URL in js/auth.js con URL di produzione
+[ ] Implementare ruolo admin per gestione prelievi manuali
+[ ] Aggiungere .env al .gitignore
+[ ] Testare l'intero flusso (deposito → acquisto → conferma → prelievo)
+    su ambiente staging prima del go-live
+
+================================================================

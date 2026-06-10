@@ -3,11 +3,11 @@ credenziali di admin per poter aver accesso a qualsiasi cosa come cancellare gli
     fare rimborsi
 
 implementare un qualcosa che trattenga il denaro perchè l'acquirente compra poi una volta arrivatro il
-    pezzo deve confermare l'arrivo e poi il denaro verrà sbloccato al venditore 
+    pezzo deve confermare l'arrivo e poi il denaro verrà sbloccato al venditore --> FATTO
 
 implementare un credto al venditore/acquirente nel senso i solti che arrivano al venditore non gli
     arrivano su pp o sul conto ma si troverà il credito sul sito poi da lì potrà trasferirseli
-    mentre per l'acuirente prima li trasferisce sul sito da pp o dal conto e poi può acquistare
+    mentre per l'acuirente prima li trasferisce sul sito da pp o dal conto e poi può acquistare --> FATTO
 
 implementare il trattenimento per le tasse che è la percentuale che ci teniamo noi
 

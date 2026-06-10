@@ -5,6 +5,7 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const { createUser, getUserByEmail, verifyPassword } = require('../models/user');
+const { getBalance } = require('../models/wallet');
 const { JWT_SECRET, JWT_EXPIRES } = require('../config');
 
 const router = express.Router();
@@ -16,11 +17,12 @@ function makeToken(user) {
   });
 }
 
-// Restituisce solo i campi sicuri dell'utente.
+// Restituisce solo i campi sicuri dell'utente, incluso il saldo.
 function safeUser(user) {
   return {
-    id: user.id,
-    email: user.email,
+    id:      user.id,
+    email:   user.email,
+    balance: getBalance(user.id),
   };
 }
 
@@ -68,10 +70,8 @@ router.get('/me', (req, res) => {
 
   try {
     const payload = jwt.verify(auth.slice(7), JWT_SECRET);
-    const user = getUserByEmail(payload.email);
-    if (!user) {
-      throw new Error('Unauthorized');
-    }
+    const user    = getUserByEmail(payload.email);
+    if (!user) throw new Error('Unauthorized');
     res.json(safeUser(user));
   } catch (err) {
     res.status(401).json({ error: 'Unauthorized' });

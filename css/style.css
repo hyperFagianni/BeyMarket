@@ -1495,6 +1495,37 @@ h1.category-btn__label::before {
   cursor: default;
 }
 
+/* ── Saldo portafoglio navbar ─────────────────────────────── */
+.navbar__balance {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.3rem 0.75rem;
+  background: rgba(91, 200, 91, 0.12);
+  border: 1px solid rgba(91, 200, 91, 0.25);
+  border-radius: 999px;
+  color: #5bc85b;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  cursor: default;
+  transition: background var(--transition), border-color var(--transition);
+}
+.navbar__balance:hover {
+  background: rgba(91, 200, 91, 0.2);
+  border-color: rgba(91, 200, 91, 0.4);
+}
+.navbar__balance-icon {
+  opacity: 0.75;
+  font-size: 0.78rem;
+}
+[data-theme="light"] .navbar__balance {
+  background: rgba(22, 160, 22, 0.08);
+  border-color: rgba(22, 160, 22, 0.25);
+  color: #198019;
+}
+
 .navbar__logout {
   font-size: 0.82rem;
   font-weight: 600;

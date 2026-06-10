@@ -1,7 +1,8 @@
 // ============================================================
-//  BeyMarket – auth.js  v1.0
+//  BeyMarket – auth.js  v2.0
 //  Autenticazione utenti tramite Supabase o Demo Mode
 //  Sessione locale valida 24 ore dal login
+//  Portafoglio utente integrato con il backend Express
 // ============================================================
 
 // ──────────────────────────────────────────────────────────────
@@ -12,6 +13,12 @@
 // ──────────────────────────────────────────────────────────────
 const SB_URL = 'https://XXXXXXXX.supabase.co';
 const SB_KEY = 'eyJhbGci...';  // anon / public key
+
+// ──────────────────────────────────────────────────────────────
+//  URL del backend Express (portafoglio, ordini)
+// ──────────────────────────────────────────────────────────────
+const BACKEND_URL = 'http://localhost:3000';
+const JWT_KEY     = 'beymarket_jwt';
 
 const SESSION_KEY    = 'beymarket_session';
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000; // 24 ore
@@ -41,6 +48,7 @@ function saveSession(user) {
 
 function clearSession() {
   localStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem(JWT_KEY);
 }
 
 function getLocalSession() {
@@ -57,12 +65,114 @@ function getLocalSession() {
 }
 
 // ════════════════════════════════════════════════════════════
+//  JWT BACKEND  –  token per le API del portafoglio
+// ════════════════════════════════════════════════════════════
+function saveJwt(token) {
+  if (token) localStorage.setItem(JWT_KEY, token);
+}
+
+function getJwt() {
+  return localStorage.getItem(JWT_KEY) || null;
+}
+
+// Chiama il backend Express. Restituisce { ok, data } oppure { ok: false, error }.
+async function backendFetch(path, options) {
+  options = options || {};
+  const token = getJwt();
+  const headers = Object.assign({ 'Content-Type': 'application/json' }, options.headers || {});
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  try {
+    const res  = await fetch(BACKEND_URL + path, Object.assign({}, options, { headers }));
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return { ok: false, error: data.error || 'Errore sconosciuto' };
+    return { ok: true, data };
+  } catch (e) {
+    return { ok: false, error: 'Backend non raggiungibile' };
+  }
+}
+
+// ════════════════════════════════════════════════════════════
 //  API PUBBLICA  –  window.BeyAuth
 // ════════════════════════════════════════════════════════════
 window.BeyAuth = {
   isAuthenticated() { return !!getLocalSession(); },
   getUser()         { return getLocalSession(); },
   openModal(tab)    { openAuthModal(tab); },
+  getJwt,
+  backendFetch,
+};
+
+// ════════════════════════════════════════════════════════════
+//  API PUBBLICA  –  window.BeyWallet
+//  Usata da altri script per accedere al portafoglio.
+// ════════════════════════════════════════════════════════════
+window.BeyWallet = {
+  // Recupera il saldo dal backend e aggiorna il contatore in navbar.
+  async fetchBalance() {
+    if (!getLocalSession()) return null;
+    const res = await backendFetch('/wallet/balance');
+    if (!res.ok) return null;
+    const balance = res.data.balance;
+    _updateBalanceBadge(balance);
+    return balance;
+  },
+
+  // Deposita fondi sul conto BeyMarket.
+  // method: 'paypal' | 'bank_transfer' | 'manual'
+  async deposit(amount, method) {
+    const res = await backendFetch('/wallet/deposit', {
+      method: 'POST',
+      body:   JSON.stringify({ amount, method: method || 'manual' }),
+    });
+    if (!res.ok) throw new Error(res.error);
+    _updateBalanceBadge(res.data.balance);
+    return res.data.balance;
+  },
+
+  // Richiede un prelievo verso IBAN o PayPal.
+  async withdraw(amount, method, destination) {
+    const res = await backendFetch('/wallet/withdraw', {
+      method: 'POST',
+      body:   JSON.stringify({ amount, method, destination }),
+    });
+    if (!res.ok) throw new Error(res.error);
+    await this.fetchBalance();
+    return res.data.withdrawal;
+  },
+
+  // Acquista un prodotto con l'escrow.
+  async buy(listingId, qty) {
+    const res = await backendFetch('/orders/buy', {
+      method: 'POST',
+      body:   JSON.stringify({ listingId, qty: qty || 1 }),
+    });
+    if (!res.ok) throw new Error(res.error);
+    await this.fetchBalance();
+    return res.data.order;
+  },
+
+  // Conferma la ricezione del pacco → sblocca i fondi al venditore.
+  async confirmReceipt(orderId) {
+    const res = await backendFetch('/orders/' + orderId + '/confirm', { method: 'POST' });
+    if (!res.ok) throw new Error(res.error);
+    await this.fetchBalance();
+    return res.data.order;
+  },
+
+  // Elenco ordini dell'utente.
+  async getOrders() {
+    const res = await backendFetch('/orders');
+    if (!res.ok) throw new Error(res.error);
+    return res.data;
+  },
+
+  // Storico movimenti del portafoglio.
+  async getTransactions(limit) {
+    const qs  = limit ? '?limit=' + limit : '';
+    const res = await backendFetch('/wallet/transactions' + qs);
+    if (!res.ok) throw new Error(res.error);
+    return res.data;
+  },
 };
 
 // ════════════════════════════════════════════════════════════
@@ -98,10 +208,29 @@ async function register(email, password) {
 //  LOGIN
 // ════════════════════════════════════════════════════════════
 async function login(email, password) {
+  // ── Prova prima il backend Express ────────────────────────────
+  try {
+    const res = await fetch(BACKEND_URL + '/auth/login', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ email, password }),
+    });
+    if (res.ok) {
+      const { user, token } = await res.json();
+      saveJwt(token);
+      saveSession(user);
+      return user;
+    }
+    if (res.status === 401) throw new Error('Email o password non corretti.');
+  } catch (e) {
+    if (e.message === 'Email o password non corretti.') throw e;
+    // Backend non disponibile: cade nel fallback sotto
+  }
+
   const db = initSupabase();
 
   if (!db) {
-    // ── Demo Mode ────────────────────────────────────────────
+    // ── Demo Mode fallback ────────────────────────────────────────────
     const users = JSON.parse(localStorage.getItem('beymarket_demo_users') || '[]');
     const found = users.find(u => u.email === email && u._pw === password);
     if (!found) throw new Error('Email o password non corretti.');
@@ -109,7 +238,7 @@ async function login(email, password) {
     return found;
   }
 
-  // ── Supabase Mode ─────────────────────────────────────────
+  // ── Supabase Mode ─────────────────────────────────────────────────
   const { data, error } = await db.auth.signInWithPassword({ email, password });
   if (error) throw new Error(translateError(error.message));
   const user = data.user;
@@ -125,6 +254,17 @@ async function logout() {
   if (db) await db.auth.signOut().catch(() => {});
   clearSession();
   updateNavbarUser();
+}
+
+// ════════════════════════════════════════════════════════════
+//  NAVBAR – saldo portafoglio
+// ════════════════════════════════════════════════════════════
+
+// Aggiorna il badge del saldo nella navbar. Chiamata da BeyWallet.fetchBalance().
+function _updateBalanceBadge(balance) {
+  const amount = document.getElementById('navbar-balance-amount');
+  if (!amount) return;
+  amount.textContent = Number(balance).toFixed(2);
 }
 
 // ════════════════════════════════════════════════════════════
@@ -148,11 +288,17 @@ function updateNavbarUser() {
     const nick = session.email.split('@')[0];
     container.innerHTML =
       '<span class="navbar__username" title="' + session.email + '">' + nick + '</span>' +
+      '<span class="navbar__balance" id="navbar-balance" title="Saldo BeyMarket">' +
+        '<span class="navbar__balance-icon">€</span>' +
+        '<span id="navbar-balance-amount">0.00</span>' +
+      '</span>' +
       '<button class="navbar__logout" id="btn-logout" aria-label="Disconnettiti">Esci</button>';
     document.getElementById('btn-logout')?.addEventListener('click', async () => {
       await logout();
       window.location.reload();
     });
+    // Carica il saldo in modo asincrono
+    window.BeyWallet && window.BeyWallet.fetchBalance();
   } else {
     container.innerHTML =
       '<button class="navbar__login-btn" id="btn-open-auth">Accedi&nbsp;/&nbsp;Registrati</button>';
