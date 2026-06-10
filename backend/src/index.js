@@ -11,6 +11,7 @@ const listingsRoutes = require('./routes/listings');
 const checkoutRoutes = require('./routes/checkout');
 const walletRoutes   = require('./routes/wallet');
 const ordersRoutes   = require('./routes/orders');
+const adminRoutes    = require('./routes/admin');
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use('/listings', listingsRoutes);
 app.use('/checkout', checkoutRoutes);
 app.use('/wallet', walletRoutes);
 app.use('/orders', ordersRoutes);
+app.use('/admin', adminRoutes);
 
 // Endpoint di health-check semplice.
 app.get('/', (req, res) => {

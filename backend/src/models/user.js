@@ -17,14 +17,14 @@ function createUser(email, password) {
 // Cerca un utente per email, restituendo anche l'hash della password.
 function getUserByEmail(email) {
   return db
-    .prepare('SELECT id, email, password, created_at FROM users WHERE email = ?')
+    .prepare('SELECT id, email, password, balance, role, created_at FROM users WHERE email = ?')
     .get(email.toLowerCase());
 }
 
 // Recupera un utente per ID, senza esporre la password hashata.
 function getUserById(id) {
   return db
-    .prepare('SELECT id, email, created_at FROM users WHERE id = ?')
+    .prepare('SELECT id, email, balance, role, created_at FROM users WHERE id = ?')
     .get(id);
 }
 
@@ -33,9 +33,25 @@ function verifyPassword(password, hash) {
   return bcrypt.compareSync(password, hash);
 }
 
+// Restituisce tutti gli utenti (solo campi sicuri) — uso admin.
+function getAllUsers() {
+  return db
+    .prepare('SELECT id, email, balance, role, created_at FROM users ORDER BY id DESC')
+    .all();
+}
+
+// Aggiorna il ruolo di un utente — uso admin.
+function setUserRole(id, role) {
+  if (!['user', 'admin'].includes(role)) throw new Error('Ruolo non valido');
+  db.prepare('UPDATE users SET role = ? WHERE id = ?').run(role, id);
+  return getUserById(id);
+}
+
 module.exports = {
   createUser,
   getUserByEmail,
   getUserById,
   verifyPassword,
+  getAllUsers,
+  setUserRole,
 };

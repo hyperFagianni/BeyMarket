@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BeyMarket – Pannello Admin</title>
+  <link rel="icon" type="image/png" href="/assets/logo-piccolo.png" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    /* ── Layout generale ─────────────────────────────────── */
+    body { font-family: sans-serif; margin: 0; padding: 0; }
+
+    .admin-wrapper {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+
+    h1 { margin-bottom: 0.25rem; }
+    .admin-subtitle { color: #888; margin-bottom: 2rem; }
+
+    /* ── Tab navigation ──────────────────────────────────── */
+    .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .tab-btn {
+      padding: 0.5rem 1.2rem;
+      border: 2px solid var(--accent, #e63946);
+      background: transparent;
+      color: var(--accent, #e63946);
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.15s, color 0.15s;
+    }
+    .tab-btn.active, .tab-btn:hover {
+      background: var(--accent, #e63946);
+      color: #fff;
+    }
+
+    /* ── Sezione generica ────────────────────────────────── */
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* ── Tabelle ─────────────────────────────────────────── */
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th, td { padding: 0.55rem 0.75rem; text-align: left; border-bottom: 1px solid #e0e0e0; }
+    th { background: #f5f5f5; font-weight: 700; }
+    tr:hover td { background: #fafafa; }
+
+    /* ── Bottoni azione ──────────────────────────────────── */
+    .btn-danger {
+      padding: 0.3rem 0.7rem;
+      background: #e63946;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.82rem;
+    }
+    .btn-danger:hover { background: #c1121f; }
+
+    .btn-primary {
+      padding: 0.3rem 0.7rem;
+      background: #2196f3;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.82rem;
+    }
+    .btn-primary:hover { background: #1565c0; }
+
+    .btn-success {
+      padding: 0.3rem 0.7rem;
+      background: #43a047;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.82rem;
+    }
+
+    /* ── Toast notifica ──────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: #333;
+      color: #fff;
+      padding: 0.75rem 1.25rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 9999;
+    }
+    #toast.show { opacity: 1; }
+
+    /* ── Chat viewer ─────────────────────────────────────── */
+    #chat-messages {
+      max-height: 400px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 1rem;
+      background: #fafafa;
+      margin-top: 1rem;
+    }
+    .chat-msg {
+      margin-bottom: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      max-width: 70%;
+    }
+    .chat-msg.sent { background: #e63946; color: #fff; margin-left: auto; }
+    .chat-msg.recv { background: #e9e9e9; }
+    .chat-msg small { display: block; font-size: 0.75rem; opacity: 0.7; margin-top: 0.2rem; }
+
+    /* ── Login overlay ───────────────────────────────────── */
+    #login-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 10000;
+    }
+    .login-box {
+      background: #fff;
+      padding: 2rem 2.5rem;
+      border-radius: 10px;
+      min-width: 320px;
+      text-align: center;
+    }
+    .login-box h2 { margin-top: 0; }
+    .login-box input {
+      width: 100%; padding: 0.6rem; margin-bottom: 0.8rem;
+      border: 1px solid #ccc; border-radius: 5px;
+      box-sizing: border-box; font-size: 1rem;
+    }
+    .login-box button {
+      width: 100%; padding: 0.7rem;
+      background: #e63946; color: #fff;
+      border: none; border-radius: 5px;
+      font-size: 1rem; cursor: pointer; font-weight: 700;
+    }
+    .login-box button:hover { background: #c1121f; }
+    #login-error { color: #e63946; font-size: 0.88rem; margin-top: 0.5rem; min-height: 1.2em; }
+  </style>
+</head>
+<body>
+
+<!-- ── Login overlay ────────────────────────────────────── -->
+<div id="login-overlay">
+  <div class="login-box">
+    <h2>🔒 Admin Login</h2>
+    <input type="email" id="admin-email" placeholder="Email admin" autocomplete="username" />
+    <input type="password" id="admin-password" placeholder="Password" autocomplete="current-password" />
+    <button onclick="doLogin()">Accedi</button>
+    <p id="login-error"></p>
+  </div>
+</div>
+
+<!-- ── Pannello principale ───────────────────────────────── -->
+<div class="admin-wrapper">
+  <h1>🛡️ BeyMarket Admin</h1>
+  <p class="admin-subtitle" id="admin-info">Caricamento…</p>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('users')">👤 Utenti</button>
+    <button class="tab-btn" onclick="showTab('listings')">📦 Annunci</button>
+    <button class="tab-btn" onclick="showTab('orders')">🛒 Ordini</button>
+    <button class="tab-btn" onclick="showTab('messages')">💬 Messaggi</button>
+  </div>
+
+  <!-- ── Utenti ──────────────────────────────────────────── -->
+  <div id="section-users" class="section active">
+    <h2>Utenti registrati</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th><th>Email</th><th>Saldo (€)</th>
+          <th>Ruolo</th><th>Registrato il</th><th>Azioni</th>
+        </tr>
+      </thead>
+      <tbody id="users-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- ── Annunci ─────────────────────────────────────────── -->
+  <div id="section-listings" class="section">
+    <h2>Tutti gli annunci</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th><th>Venditore</th><th>Nome</th><th>Categoria</th>
+          <th>Prezzo (€)</th><th>Qty</th><th>Creato il</th><th>Azioni</th>
+        </tr>
+      </thead>
+      <tbody id="listings-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- ── Ordini ──────────────────────────────────────────── -->
+  <div id="section-orders" class="section">
+    <h2>Tutti gli ordini</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th><th>Acquirente</th><th>Venditore</th><th>Articolo</th>
+          <th>Totale (€)</th><th>Escrow (€)</th><th>Stato</th><th>Azioni</th>
+        </tr>
+      </thead>
+      <tbody id="orders-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- ── Messaggi ────────────────────────────────────────── -->
+  <div id="section-messages" class="section">
+    <h2>Conversazioni</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Utente 1</th><th>Utente 2</th><th>Messaggi</th>
+          <th>Ultimo messaggio</th><th>Azioni</th>
+        </tr>
+      </thead>
+      <tbody id="messages-tbody"></tbody>
+    </table>
+    <div id="chat-messages" style="display:none;"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  const API = 'http://localhost:3000';
+  let token = null;
+
+  // ── Utilità ──────────────────────────────────────────────
+
+  function toast(msg, duration = 3000) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), duration);
+  }
+
+  async function apiFetch(path, opts = {}) {
+    const res = await fetch(API + path, {
+      ...opts,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token,
+        ...(opts.headers || {}),
+      },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Errore server');
+    return data;
+  }
+
+  // ── Login ────────────────────────────────────────────────
+
+  async function doLogin() {
+    const email    = document.getElementById('admin-email').value.trim();
+    const password = document.getElementById('admin-password').value;
+    const errEl    = document.getElementById('login-error');
+    errEl.textContent = '';
+
+    try {
+      const data = await fetch(API + '/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      }).then(r => r.json());
+
+      if (!data.token) throw new Error(data.error || 'Login fallito');
+
+      // Verifica che sia effettivamente admin
+      token = data.token;
+      const me = await apiFetch('/auth/me');
+      if (me.role !== 'admin') {
+        token = null;
+        throw new Error('Non sei un amministratore');
+      }
+
+      document.getElementById('login-overlay').style.display = 'none';
+      document.getElementById('admin-info').textContent = `Connesso come ${me.email}`;
+      loadAll();
+    } catch (err) {
+      errEl.textContent = err.message;
+      token = null;
+    }
+  }
+
+  // ── Tabs ─────────────────────────────────────────────────
+
+  function showTab(name) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('section-' + name).classList.add('active');
+    event.currentTarget.classList.add('active');
+  }
+
+  // ── Caricamento dati ──────────────────────────────────────
+
+  async function loadAll() {
+    await Promise.all([loadUsers(), loadListings(), loadOrders(), loadConversations()]);
+  }
+
+  // Utenti
+  async function loadUsers() {
+    const users = await apiFetch('/admin/users');
+    const tbody = document.getElementById('users-tbody');
+    tbody.innerHTML = users.map(u => `
+      <tr>
+        <td>${u.id}</td>
+        <td>${esc(u.email)}</td>
+        <td>${(u.balance || 0).toFixed(2)}</td>
+        <td><span style="font-weight:700;color:${u.role==='admin'?'#e63946':'inherit'}">${u.role}</span></td>
+        <td>${u.created_at || '—'}</td>
+        <td>
+          ${u.role === 'admin'
+            ? `<button class="btn-primary" onclick="setRole(${u.id},'user')">Revoca admin</button>`
+            : `<button class="btn-success" onclick="setRole(${u.id},'admin')">Promuovi admin</button>`}
+        </td>
+      </tr>`).join('');
+  }
+
+  async function setRole(id, role) {
+    if (!confirm(`Cambiare il ruolo dell'utente ${id} in "${role}"?`)) return;
+    await apiFetch(`/admin/users/${id}/role`, {
+      method: 'PUT',
+      body: JSON.stringify({ role }),
+    });
+    toast('Ruolo aggiornato');
+    loadUsers();
+  }
+
+  // Annunci
+  async function loadListings() {
+    const listings = await apiFetch('/admin/listings');
+    const tbody = document.getElementById('listings-tbody');
+    tbody.innerHTML = listings.map(l => `
+      <tr>
+        <td>${l.id}</td>
+        <td>${esc(l.seller_email || '—')}</td>
+        <td>${esc(l.name)}</td>
+        <td>${esc(l.category)}</td>
+        <td>${(l.price || 0).toFixed(2)}</td>
+        <td>${l.qty}</td>
+        <td>${l.created_at || '—'}</td>
+        <td>
+          <button class="btn-danger" onclick="deleteListing(${l.id})">Elimina</button>
+        </td>
+      </tr>`).join('');
+  }
+
+  async function deleteListing(id) {
+    if (!confirm(`Eliminare definitivamente l'annuncio #${id}?`)) return;
+    await apiFetch(`/admin/listings/${id}`, { method: 'DELETE' });
+    toast('Annuncio eliminato');
+    loadListings();
+  }
+
+  // Ordini
+  async function loadOrders() {
+    const orders = await apiFetch('/admin/orders');
+    const tbody  = document.getElementById('orders-tbody');
+
+    const statusColor = { pending:'#f0a500', shipped:'#2196f3', completed:'#43a047', cancelled:'#999', disputed:'#e63946' };
+
+    tbody.innerHTML = orders.map(o => `
+      <tr>
+        <td>${o.id}</td>
+        <td>${esc(o.buyer_email || '—')}</td>
+        <td>${esc(o.seller_email || '—')}</td>
+        <td>${esc(o.listing_name)}</td>
+        <td>${(o.total || 0).toFixed(2)}</td>
+        <td>${(o.escrow_amount || 0).toFixed(2)}</td>
+        <td><span style="color:${statusColor[o.status]||'#333'};font-weight:700">${o.status}</span></td>
+        <td>
+          ${o.escrow_amount > 0 && !['cancelled','refunded'].includes(o.status)
+            ? `<button class="btn-danger" onclick="refundOrder(${o.id})">Rimborsa</button>`
+            : '—'}
+        </td>
+      </tr>`).join('');
+  }
+
+  async function refundOrder(id) {
+    if (!confirm(`Rimborsare l'ordine #${id}? L'importo verrà riaccreditato all'acquirente.`)) return;
+    await apiFetch(`/admin/orders/${id}/refund`, { method: 'POST' });
+    toast('Rimborso eseguito');
+    loadOrders();
+  }
+
+  // Messaggi / conversazioni
+  async function loadConversations() {
+    const convs = await apiFetch('/admin/messages');
+    const tbody = document.getElementById('messages-tbody');
+    tbody.innerHTML = convs.map(c => `
+      <tr>
+        <td>${esc(c.user1_email)}</td>
+        <td>${esc(c.user2_email)}</td>
+        <td>${c.msg_count}</td>
+        <td>${c.last_message_at || '—'}</td>
+        <td>
+          <button class="btn-primary" onclick="viewChat(${c.uid1},${c.uid2},'${esc(c.user1_email)}','${esc(c.user2_email)}')">
+            Leggi
+          </button>
+        </td>
+      </tr>`).join('');
+  }
+
+  async function viewChat(uid1, uid2, email1, email2) {
+    const msgs = await apiFetch(`/admin/messages/${uid1}/${uid2}`);
+    const box  = document.getElementById('chat-messages');
+    box.style.display = 'block';
+    box.innerHTML = `<strong>Chat: ${esc(email1)} ↔ ${esc(email2)}</strong><hr>` +
+      msgs.map(m => {
+        const side = m.sender_id === uid1 ? 'sent' : 'recv';
+        return `<div class="chat-msg ${side}">
+          <strong>${esc(m.sender_email)}</strong>: ${esc(m.body)}
+          <small>${m.created_at || ''}</small>
+        </div>`;
+      }).join('') || '<em>Nessun messaggio trovato.</em>';
+    box.scrollTop = box.scrollHeight;
+  }
+
+  // ── Sanitizzazione output ─────────────────────────────────
+  function esc(str) {
+    return String(str ?? '')
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;')
+      .replace(/'/g,'&#39;');
+  }
+
+  // Enter sul campo password fa login
+  document.getElementById('admin-password')
+    .addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+</script>
+</body>
+</html>

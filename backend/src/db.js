@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS users (
   email TEXT UNIQUE NOT NULL,
   password TEXT NOT NULL,
   balance REAL NOT NULL DEFAULT 0,
+  role TEXT NOT NULL DEFAULT 'user',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -73,6 +74,18 @@ CREATE TABLE IF NOT EXISTS orders (
   FOREIGN KEY (seller_id) REFERENCES users(id)
 );
 
+-- Messaggi diretti tra utenti.
+CREATE TABLE IF NOT EXISTS messages (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  sender_id INTEGER NOT NULL,
+  receiver_id INTEGER NOT NULL,
+  body TEXT NOT NULL,
+  read INTEGER NOT NULL DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (sender_id) REFERENCES users(id),
+  FOREIGN KEY (receiver_id) REFERENCES users(id)
+);
+
 -- Richieste di prelievo dal conto BeyMarket verso IBAN/PayPal.
 -- status: 'pending' | 'processed' | 'failed'
 CREATE TABLE IF NOT EXISTS withdrawals (
@@ -92,6 +105,7 @@ CREATE TABLE IF NOT EXISTS withdrawals (
 // Aggiunge colonne che non esistevano nelle versioni precedenti.
 const migrations = [
   'ALTER TABLE users ADD COLUMN balance REAL NOT NULL DEFAULT 0',
+  "ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'user'",
   'ALTER TABLE listings ADD COLUMN seller_id INTEGER',
 ];
 for (const sql of migrations) {

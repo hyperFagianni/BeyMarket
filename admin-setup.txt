@@ -1,0 +1,182 @@
+====================================================
+  BEYMARKET – SISTEMA ADMIN: DOCUMENTAZIONE
+====================================================
+Data generazione: 10/06/2026
+
+
+----------------------------------------------------
+COSA È STATO CREATO / MODIFICATO
+----------------------------------------------------
+
+1. backend/src/db.js
+   - Aggiunta colonna "role" alla tabella "users"
+     (valori possibili: 'user' | 'admin', default 'user')
+   - Aggiunta tabella "messages" per i messaggi diretti
+     tra utenti (usata dal pannello admin per leggere
+     le chat in caso di segnalazioni)
+   - Aggiunta migrazione automatica per database esistenti
+     (la colonna role viene aggiunta senza perdere dati)
+
+2. backend/src/models/user.js
+   - La colonna "role" è ora inclusa in tutte le query
+   - Aggiunta funzione getAllUsers()   → lista tutti gli utenti
+   - Aggiunta funzione setUserRole()  → cambia ruolo a un utente
+
+3. backend/src/middleware/admin.js  ← FILE NUOVO
+   - Middleware Express che blocca l'accesso (403 Forbidden)
+     se l'utente autenticato NON ha ruolo 'admin'
+   - Va usato DOPO authMiddleware
+
+4. backend/src/routes/admin.js  ← FILE NUOVO
+   - Contiene tutte le route protette /admin/*
+   - Ogni route richiede token JWT valido + ruolo admin
+
+5. backend/src/index.js
+   - Registrato il nuovo router admin su /admin
+
+6. pages/admin.html  ← FILE NUOVO
+   - Pannello web admin accessibile via browser
+   - Login con email/password admin
+   - 4 sezioni: Utenti / Annunci / Ordini / Messaggi
+
+7. backend/scripts/create-admin.js  ← FILE NUOVO
+   - Script Node.js per creare o promuovere un utente admin
+
+8. backend/package.json
+   - Aggiunto script npm "create-admin"
+
+
+----------------------------------------------------
+API ADMIN – ENDPOINT DISPONIBILI
+----------------------------------------------------
+Tutte le route richiedono header:
+  Authorization: Bearer <token_admin>
+
+  GET    /admin/users                  Lista tutti gli utenti
+  PUT    /admin/users/:id/role         Cambia ruolo utente
+                                       body: { "role": "admin" | "user" }
+
+  GET    /admin/listings               Lista tutti gli annunci
+  DELETE /admin/listings/:id           Elimina un annuncio
+
+  GET    /admin/orders                 Lista tutti gli ordini
+  POST   /admin/orders/:id/refund      Forza rimborso acquirente
+                                       (riaccredita escrow_amount)
+
+  GET    /admin/messages               Lista conversazioni (coppie utenti)
+  GET    /admin/messages/:uid1/:uid2   Leggi chat tra due utenti
+
+
+----------------------------------------------------
+PASSI DA SEGUIRE PER METTERE IN FUNZIONE
+----------------------------------------------------
+
+PASSO 1 – Assicurati che il backend sia stato avviato
+          almeno una volta DOPO queste modifiche,
+          in modo che la migrazione aggiunga la colonna
+          "role" al database esistente.
+
+  cd backend
+  npm start
+
+  (poi puoi fermarlo con CTRL+C)
+
+
+PASSO 2 – Crea il tuo utente admin
+
+  Dalla cartella backend, esegui:
+
+    node scripts/create-admin.js admin@beymarket.it LatuaPassword99!
+
+  Oppure senza password nel comando (la chiede in modo sicuro):
+
+    node scripts/create-admin.js admin@beymarket.it
+
+  Lo script:
+  - Se l'email NON esiste → crea un nuovo utente con ruolo admin
+  - Se l'email ESISTE già → aggiorna la password e promuove a admin
+
+  ATTENZIONE: usa una password sicura (minimo 8 caratteri).
+
+
+PASSO 3 – Avvia il backend
+
+  cd backend
+  npm start
+
+  Il backend sarà in ascolto su http://localhost:3000
+
+
+PASSO 4 – Apri il pannello admin nel browser
+
+  Apri il file:
+    pages/admin.html
+
+  Oppure, se stai servendo i file statici, vai su:
+    http://localhost:<porta>/pages/admin.html
+
+  Inserisci email e password dell'admin creato al Passo 2.
+
+
+PASSO 5 – Funzionalità disponibili nel pannello
+
+  TAB UTENTI:
+  - Vedi tutti gli utenti registrati con saldo e ruolo
+  - Pulsante "Promuovi admin" → assegna ruolo admin
+  - Pulsante "Revoca admin"   → torna a ruolo user
+
+  TAB ANNUNCI:
+  - Vedi tutti gli annunci con venditore e prezzo
+  - Pulsante "Elimina" → rimuove definitivamente l'annuncio
+
+  TAB ORDINI:
+  - Vedi tutti gli ordini con stato e importo in escrow
+  - Pulsante "Rimborsa" → riaccredita l'importo all'acquirente
+    e imposta l'ordine su 'cancelled'
+    (visibile solo se c'è ancora importo in escrow)
+
+  TAB MESSAGGI:
+  - Vedi l'elenco delle conversazioni tra utenti
+  - Pulsante "Leggi" → mostra i messaggi della chat
+    (utile per gestire segnalazioni)
+
+
+----------------------------------------------------
+NOTE TECNICHE
+----------------------------------------------------
+
+- Il ruolo admin è controllato lato backend ad ogni
+  richiesta: anche se qualcuno modificasse il token,
+  il middleware verifica il ruolo direttamente dal
+  database.
+
+- Le route /admin/* NON sono accessibili senza un
+  token JWT valido con ruolo 'admin'. Un utente
+  normale riceve errore 403.
+
+- La tabella "messages" è stata aggiunta per supportare
+  la futura messaggistica tra utenti. Attualmente il
+  pannello admin può già leggerla; manca ancora il
+  backend completo della messaggistica (vedi ideas.txt).
+
+- Il pannello admin (pages/admin.html) è un file HTML
+  statico: non va su internet, comunicando direttamente
+  con localhost:3000. Tienilo accessibile solo agli
+  amministratori del sito.
+
+
+----------------------------------------------------
+FILE CREATI / MODIFICATI – RIEPILOGO RAPIDO
+----------------------------------------------------
+
+  NUOVO     backend/src/middleware/admin.js
+  NUOVO     backend/src/routes/admin.js
+  NUOVO     backend/scripts/create-admin.js
+  NUOVO     pages/admin.html
+
+  MODIFICATO  backend/src/db.js
+  MODIFICATO  backend/src/models/user.js
+  MODIFICATO  backend/src/index.js
+  MODIFICATO  backend/package.json
+
+====================================================
