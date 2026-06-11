@@ -115,6 +115,40 @@
     .chat-msg.recv { background: #e9e9e9; }
     .chat-msg small { display: block; font-size: 0.75rem; opacity: 0.7; margin-top: 0.2rem; }
 
+    /* ── Segnalazioni ────────────────────────────────────── */
+    .dispute-card {
+      border: 1.5px solid #f8d7da;
+      border-radius: 10px;
+      padding: 1rem 1.2rem;
+      margin-bottom: 1rem;
+      background: #fff;
+      transition: background 0.2s;
+    }
+    .dispute-card.unread { background: #fff8f8; border-color: #e63946; }
+    .dispute-card__header {
+      display: flex; align-items: center; flex-wrap: wrap;
+      gap: 0.5rem; margin-bottom: 0.5rem;
+    }
+    .dispute-card__id { font-weight: 700; font-size: 1rem; }
+    .dispute-card__badge-new {
+      background: #e63946; color: #fff;
+      border-radius: 10px; padding: 1px 9px;
+      font-size: 0.75rem; font-weight: 700;
+    }
+    .dispute-card__date { color: #888; font-size: 0.82rem; margin-left: auto; }
+    .dispute-card__detail { font-size: 0.88rem; color: #444; margin-bottom: 0.4rem; }
+    .dispute-card__reason {
+      background: #fff3cd; border-left: 3px solid #ffc107;
+      padding: 0.5rem 0.75rem; border-radius: 4px;
+      font-size: 0.88rem; color: #856404; margin: 0.5rem 0;
+    }
+    .dispute-card__actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.7rem; }
+    #dispute-chat-messages {
+      max-height: 380px; overflow-y: auto;
+      border: 1px solid #ddd; border-radius: 6px;
+      padding: 1rem; background: #fafafa;
+    }
+
     /* ── Login overlay ───────────────────────────────────── */
     #login-overlay {
       position: fixed; inset: 0;
@@ -168,6 +202,7 @@
     <button class="tab-btn" onclick="showTab('listings')">📦 Annunci</button>
     <button class="tab-btn" onclick="showTab('orders')">🛒 Ordini</button>
     <button class="tab-btn" onclick="showTab('messages')">💬 Messaggi</button>
+    <button class="tab-btn" id="tab-btn-disputes" onclick="showTab('disputes')">⚠️ Segnalazioni <span id="disputes-badge" style="display:none;background:#e63946;color:#fff;border-radius:10px;padding:0 7px;font-size:.78rem;margin-left:4px;">0</span></button>
   </div>
 
   <!-- ── Utenti ──────────────────────────────────────────── -->
@@ -225,6 +260,23 @@
       <tbody id="messages-tbody"></tbody>
     </table>
     <div id="chat-messages" style="display:none;"></div>
+  </div>
+
+  <!-- ── Segnalazioni ───────────────────────────────────── -->
+  <div id="section-disputes" class="section">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem">
+      <h2 style="margin:0">⚠️ Segnalazioni ordini</h2>
+      <button class="btn-primary" onclick="markAllRead()">Segna tutte come lette</button>
+    </div>
+    <div id="disputes-list"></div>
+    <!-- chat inline per segnalazione -->
+    <div id="dispute-chat-container" style="display:none;margin-top:1.5rem">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.5rem">
+        <strong id="dispute-chat-title"></strong>
+        <button class="btn-danger" onclick="closeDisputeChat()">✕ Chiudi chat</button>
+      </div>
+      <div id="dispute-chat-messages"></div>
+    </div>
   </div>
 </div>
 
@@ -285,6 +337,7 @@
       document.getElementById('login-overlay').style.display = 'none';
       document.getElementById('admin-info').textContent = `Connesso come ${me.email}`;
       loadAll();
+      startBadgePolling();
     } catch (err) {
       errEl.textContent = err.message;
       token = null;
@@ -298,12 +351,14 @@
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('section-' + name).classList.add('active');
     event.currentTarget.classList.add('active');
+    // Ricarica segnalazioni quando si apre la tab (per marcare come viste)
+    if (name === 'disputes') loadDisputes();
   }
 
   // ── Caricamento dati ──────────────────────────────────────
 
   async function loadAll() {
-    await Promise.all([loadUsers(), loadListings(), loadOrders(), loadConversations()]);
+    await Promise.all([loadUsers(), loadListings(), loadOrders(), loadConversations(), loadDisputes()]);
   }
 
   // Utenti
@@ -438,6 +493,143 @@
   // Enter sul campo password fa login
   document.getElementById('admin-password')
     .addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+  // ── Segnalazioni ─────────────────────────────────────────
+
+  async function loadDisputes() {
+    let notifications;
+    try {
+      notifications = await apiFetch('/admin/notifications');
+    } catch (_) { return; }
+
+    // Aggiorna badge
+    const unread = notifications.filter(n => !n.read).length;
+    const badge  = document.getElementById('disputes-badge');
+    if (unread > 0) {
+      badge.textContent = unread;
+      badge.style.display = '';
+    } else {
+      badge.style.display = 'none';
+    }
+
+    const container = document.getElementById('disputes-list');
+    if (!notifications.length) {
+      container.innerHTML = '<p style="color:#888;padding:1rem 0;">Nessuna segnalazione ricevuta.</p>';
+      return;
+    }
+
+    container.innerHTML = notifications.map(n => {
+      const isUnread = !n.read;
+      const chatBtn  = (n.buyer_id && n.seller_id)
+        ? `<button class="btn-primary" onclick="viewDisputeChat(${n.id},${n.buyer_id},${n.seller_id},'${esc(n.buyer_email||'')}','${esc(n.seller_email||'')}')">💬 Vedi chat</button>`
+        : '';
+      const refundBtn = (n.escrow_amount > 0 || (n.order_status && !['cancelled','refunded'].includes(n.order_status)))
+        ? `<button class="btn-danger" onclick="refundFromDispute(${n.order_id},${n.id})">💰 Rimborsa</button>`
+        : '';
+      const readBtn = isUnread
+        ? `<button class="btn-success" onclick="markRead(${n.id})">✔ Segna letta</button>`
+        : '';
+
+      return `<div class="dispute-card ${isUnread ? 'unread' : ''}" id="dispute-card-${n.id}">
+        <div class="dispute-card__header">
+          <span class="dispute-card__id">Segnalazione #${n.id} – Ordine #${n.order_id || '—'}</span>
+          ${isUnread ? '<span class="dispute-card__badge-new">NUOVA</span>' : ''}
+          <span class="dispute-card__date">${n.created_at ? new Date(n.created_at).toLocaleString('it-IT') : '—'}</span>
+        </div>
+        <div class="dispute-card__detail">
+          <strong>Acquirente:</strong> ${esc(n.buyer_email || n.reporter_email || '—')} &nbsp;|&nbsp;
+          <strong>Venditore:</strong> ${esc(n.seller_email || '—')} &nbsp;|&nbsp;
+          <strong>Prodotto:</strong> ${esc(n.listing_name || '—')} &nbsp;|&nbsp;
+          <strong>Totale:</strong> € ${Number(n.total || 0).toFixed(2)} &nbsp;|&nbsp;
+          <strong>Stato ordine:</strong> ${esc(n.order_status || '—')}
+        </div>
+        <div class="dispute-card__reason">⚠️ ${esc(n.dispute_reason || n.message || '—')}</div>
+        <div class="dispute-card__actions">
+          ${chatBtn}
+          ${refundBtn}
+          ${readBtn}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  async function markRead(notifId) {
+    await apiFetch(`/admin/notifications/${notifId}/read`, { method: 'POST' });
+    loadDisputes();
+  }
+
+  async function markAllRead() {
+    await apiFetch('/admin/notifications/read-all', { method: 'POST' });
+    loadDisputes();
+  }
+
+  async function refundFromDispute(orderId, notifId) {
+    if (!confirm(`Rimborsare l'ordine #${orderId}? L'importo verrà riaccreditato all'acquirente.`)) return;
+    try {
+      await apiFetch(`/admin/orders/${orderId}/refund`, { method: 'POST' });
+      toast('Rimborso eseguito');
+      // Segna la notifica come letta e ricarica
+      await apiFetch(`/admin/notifications/${notifId}/read`, { method: 'POST' });
+      loadDisputes();
+      loadOrders();
+    } catch (err) {
+      toast('Errore: ' + err.message);
+    }
+  }
+
+  async function viewDisputeChat(notifId, uid1, uid2, email1, email2) {
+    // Segna come letta
+    apiFetch(`/admin/notifications/${notifId}/read`, { method: 'POST' }).then(() => loadDisputes());
+
+    const container = document.getElementById('dispute-chat-container');
+    const titleEl   = document.getElementById('dispute-chat-title');
+    const messagesEl = document.getElementById('dispute-chat-messages');
+
+    titleEl.textContent = `Chat: ${email1} ↔ ${email2}`;
+    messagesEl.innerHTML = '<em>Caricamento…</em>';
+    container.style.display = '';
+    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    try {
+      const msgs = await apiFetch(`/admin/messages/${uid1}/${uid2}`);
+      if (!msgs.length) {
+        messagesEl.innerHTML = '<em style="color:#888">Nessun messaggio tra questi utenti.</em>';
+        return;
+      }
+      messagesEl.innerHTML = msgs.map(m => {
+        const side = m.sender_id === uid1 ? 'sent' : 'recv';
+        return `<div class="chat-msg ${side}">
+          <strong>${esc(m.sender_email)}</strong>: ${esc(m.body)}
+          <small>${m.created_at ? new Date(m.created_at).toLocaleString('it-IT') : ''}</small>
+        </div>`;
+      }).join('');
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    } catch (err) {
+      messagesEl.innerHTML = '<em style="color:#e63946">Errore nel caricamento della chat.</em>';
+    }
+  }
+
+  function closeDisputeChat() {
+    document.getElementById('dispute-chat-container').style.display = 'none';
+  }
+
+  // Polling badge ogni 30 secondi quando l'admin è loggato
+  let _pollInterval = null;
+  function startBadgePolling() {
+    if (_pollInterval) return;
+    _pollInterval = setInterval(async () => {
+      try {
+        const data  = await apiFetch('/admin/notifications/unread-count');
+        const badge = document.getElementById('disputes-badge');
+        if (data.count > 0) {
+          badge.textContent = data.count;
+          badge.style.display = '';
+        } else {
+          badge.style.display = 'none';
+        }
+      } catch (_) {}
+    }, 30000);
+  }
 </script>
 </body>
 </html>

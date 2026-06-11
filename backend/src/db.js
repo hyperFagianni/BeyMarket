@@ -101,6 +101,20 @@ CREATE TABLE IF NOT EXISTS withdrawals (
   processed_at DATETIME,
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+-- Notifiche per gli amministratori (es. segnalazione problemi su ordini).
+-- type: 'dispute'
+CREATE TABLE IF NOT EXISTS admin_notifications (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  type TEXT NOT NULL DEFAULT 'dispute',
+  order_id INTEGER,
+  user_id INTEGER,
+  message TEXT NOT NULL,
+  read INTEGER NOT NULL DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (order_id) REFERENCES orders(id),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
 `);
 
 // ── Migrazioni per database esistenti ──────────────────────

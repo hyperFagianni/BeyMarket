@@ -161,6 +161,19 @@ router.post('/:id/dispute', (req, res) => {
   db.prepare(
     "UPDATE orders SET status = 'disputed', dispute_reason = ? WHERE id = ?"
   ).run(reason.trim(), orderId);
+
+  // Crea notifica per gli amministratori
+  try {
+    db.prepare(
+      `INSERT INTO admin_notifications (type, order_id, user_id, message)
+       VALUES ('dispute', ?, ?, ?)`
+    ).run(
+      orderId,
+      req.user.id,
+      `Controversia aperta sull'ordine #${orderId}: ${reason.trim().substring(0, 200)}`
+    );
+  } catch (_) { /* Non blocca la risposta se la notifica fallisce */ }
+
   const updated = db.prepare('SELECT * FROM orders WHERE id = ?').get(orderId);
   res.json({ ok: true, order: updated });
 });

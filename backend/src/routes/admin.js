@@ -170,4 +170,52 @@ router.get('/messages/:uid1/:uid2', (req, res) => {
   res.json(messages);
 });
 
+// ── Segnalazioni / Dispute ─────────────────────────────────
+
+// Restituisce tutte le notifiche admin con dettagli ordine e utenti.
+router.get('/notifications', (req, res) => {
+  const notifications = db
+    .prepare(
+      `SELECT n.*,
+              u.email  AS reporter_email,
+              o.listing_name, o.total, o.status AS order_status,
+              o.dispute_reason, o.tracking_code,
+              o.buyer_id, o.seller_id,
+              b.email  AS buyer_email,
+              s.email  AS seller_email
+       FROM admin_notifications n
+       LEFT JOIN users  u ON u.id = n.user_id
+       LEFT JOIN orders o ON o.id = n.order_id
+       LEFT JOIN users  b ON b.id = o.buyer_id
+       LEFT JOIN users  s ON s.id = o.seller_id
+       ORDER BY n.created_at DESC`
+    )
+    .all();
+  res.json(notifications);
+});
+
+// Conteggio notifiche non lette.
+router.get('/notifications/unread-count', (req, res) => {
+  const row = db
+    .prepare('SELECT COUNT(*) AS count FROM admin_notifications WHERE read = 0')
+    .get();
+  res.json({ count: row.count });
+});
+
+// Segna una singola notifica come letta.
+router.post('/notifications/:id/read', (req, res) => {
+  const id   = Number(req.params.id);
+  const info = db
+    .prepare('UPDATE admin_notifications SET read = 1 WHERE id = ?')
+    .run(id);
+  if (info.changes === 0) return res.status(404).json({ error: 'Notifica non trovata' });
+  res.json({ ok: true });
+});
+
+// Segna tutte le notifiche come lette.
+router.post('/notifications/read-all', (req, res) => {
+  db.prepare('UPDATE admin_notifications SET read = 1').run();
+  res.json({ ok: true });
+});
+
 module.exports = router;
